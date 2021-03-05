@@ -44,6 +44,7 @@ def load_json_files_to_spark(url):
     moves_table = spark.sql("""
 
                     select
+                        createdAt,
                         id,
                         moves,
                         players_black_user_name,
@@ -57,7 +58,7 @@ def load_json_files_to_spark(url):
 
     moves_table.show()
 
-    moves_table.write.mode('overwrite').parquet("output_data/" + "moves/")
+    moves_table.write.mode('append').parquet("output_data/" + "moves/")
 
 def flatten_json(json_responses):
 
@@ -78,6 +79,8 @@ def main():
 
 
     load_json_files_to_spark("https://lichess.org/api/games/user/alireza2003")
+    load_json_files_to_spark("https://lichess.org/api/games/user/GothamChess")
+
 
 
 if __name__ == "__main__":
