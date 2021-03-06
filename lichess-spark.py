@@ -13,14 +13,14 @@ sc = SparkContext(conf=conf)
 sqlContext = SQLContext(sc)
 
 
-def load_json_files_to_spark(url):
+def load_json_files_to_spark(url, nbgames):
 
     spark = SparkSession \
     .builder \
     .appName("DataCleansing") \
     .getOrCreate()
 
-    params = {'max':'100'}
+    params = {'max': nbgames}
 
     headers = {'Accept': 'application/x-ndjson'}
 
@@ -81,14 +81,18 @@ def flatten_json(json_responses):
 
     return full_flattened_json
 
+def get_lichess_games(player_list):
+
+    for player in player_list:
+
+        load_json_files_to_spark("https://lichess.org/api/games/user/" + player, 1000)
+
 
 def main():
 
+    players = ["alireza2003", "Konevlad", "neslraCsungaM77", "Vladimirovich9000", "sp1cycaterpillar", "Federicov93", "may6enexttime", "Kelevra317", "nihalsarin2004", " Drvitman"]
 
-    load_json_files_to_spark("https://lichess.org/api/games/user/alireza2003")
-    load_json_files_to_spark("https://lichess.org/api/games/user/GothamChess")
-
-
+    get_lichess_games(players)
 
 if __name__ == "__main__":
     main()
