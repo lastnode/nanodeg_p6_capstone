@@ -47,13 +47,17 @@ def load_json_files_to_spark(url, nbgames):
                         createdAt,
                         id,
                         moves,
-                        case 
-                            when moves like "%e4 c5%" then "B20 Sicilian defence"
-                            when moves like "%e4 c5 f4%" then "B21 Sicilian, Grand Prix attack"
-                            when moves like "%e4 c5 Nf3%" then "B27 Sicilian defence"
+                        case             
+                            when moves like "%d4 Nf6%" then "A45-A46 Queen's pawn game" 
+                            when moves like "%d4 d5%" then "D00 Queen's pawn game"                                                                                                              
+                            when moves like "%d4 d5%" then "D00 Queen's pawn game"                                                                                                              
+                            when moves like "%e4 e5 Nf3 Nc6 Bb5%" then "C60-C99 Ruy Lopez (Spanish opening)"
+                            when moves like "%e4 c5%" then "B20-B99 Sicilian defence"
+                            when moves like "%e4 c6%" then "B10-B19 Caro-Kann defence"
                             when moves like "%d4 d5 c4 dxc4%" then "D20 Queen's gambit accepted"
-                            when moves like "%d4 d5 c4 dxc4 Nf3%" then "D21 Queen's Gambit Accepted, 3.Nf3"                            
-                            when moves like "%d4 d5 c4 dxc4 Nf3 a6%" then "D22 Queen's Gambit Accepted, Alekhine defence"                            
+                            when moves like "%d4 d5 c4 e6%" then "D30-D42 Queen's gambit declined"                            
+                            when moves like "%d4 Nf6 c4 e6 Nf3%" then "E10 Queen's pawn game"                            
+                            when moves like "%e4 e5%" then "C20 King's pawn game"                            
                             else null 
                         end as opening,
                         players_black_user_name,
@@ -85,7 +89,7 @@ def get_lichess_games(player_list):
 
     for player in player_list:
 
-        load_json_files_to_spark("https://lichess.org/api/games/user/" + player, 1000)
+        load_json_files_to_spark("https://lichess.org/api/games/user/" + player, 10)
 
 
 def main():
