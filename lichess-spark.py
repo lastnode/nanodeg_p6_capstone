@@ -44,7 +44,7 @@ def load_json_files_to_spark(url, nbgames):
     moves_table = spark.sql("""
 
                     select
-                        createdAt,
+                        from_unixtime(createdAt/1000, 'dd-MM-yyyy') as timestamp,
                         id,
                         speed,
                         moves,
@@ -94,12 +94,12 @@ def get_lichess_games(player_list):
 
     for player in player_list:
 
-        load_json_files_to_spark("https://lichess.org/api/games/user/" + player, 1000)
+        load_json_files_to_spark("https://lichess.org/api/games/user/" + player, 10)
 
 
 def main():
 
-    players = ["alireza2003", "Konevlad", "neslraCsungaM77", "Vladimirovich9000", "sp1cycaterpillar", "Federicov93", "may6enexttime", "Kelevra317", "nihalsarin2004", " Drvitman"]
+    players = ["alireza2003", "Konevlad", "neslraCsungaM77", "Vladimirovich9000", "sp1cycaterpillar", "Federicov93", "may6enexttime", "Kelevra317", "nihalsarin2004", " Drvitman", "DrNykterstein", "C9C9C9C9C9", "muisback", "Inventing_Invention", "RebeccaHarris", "drop_stone", "Alexander_Zubov", "IWANNABEADOORED", "Kelevra317", "dolar9", "cutemouse83"]
 
     get_lichess_games(players)
 
