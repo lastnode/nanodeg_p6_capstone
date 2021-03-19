@@ -46,6 +46,7 @@ def load_json_files_to_spark(url, nbgames):
                     select
                         createdAt,
                         id,
+                        speed,
                         moves,
                         case             
                             when moves like "%d4 Nf6%" then "A45-A46 Queen's pawn game" 
@@ -61,9 +62,13 @@ def load_json_files_to_spark(url, nbgames):
                             else null 
                         end as opening,
                         players_black_user_name,
+                        players_black_user_title,
                         players_white_user_name,
+                        players_white_user_title,
                         winner
                     from lichess_main
+
+                    where (players_black_user_title = "GM" and players_white_user_title = "GM")
 
         """)
 
@@ -79,7 +84,7 @@ def flatten_json(json_responses):
 
         flattened_json = flatten(response)
 
-        print(type(flattened_json))
+        print(flattened_json)
 
         full_flattened_json.append(flattened_json)   
 
@@ -89,7 +94,7 @@ def get_lichess_games(player_list):
 
     for player in player_list:
 
-        load_json_files_to_spark("https://lichess.org/api/games/user/" + player, 10)
+        load_json_files_to_spark("https://lichess.org/api/games/user/" + player, 1000)
 
 
 def main():
