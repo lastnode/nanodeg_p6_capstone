@@ -1,7 +1,7 @@
 from pyspark import SparkContext, SparkConf
 from pyspark.sql import SparkSession
 from pyspark import SQLContext
-from pyspark.sql.functions import concat
+from pathlib import Path
 import requests, json
 from datetime import datetime
 import os
@@ -36,15 +36,21 @@ def load_json_files_to_spark(url, nbgames):
  
     flattened_json_responses = flatten_json(json_data)
 
-    df = spark.createDataFrame(flattened_json_responses)
+    try:
+        df = spark.createDataFrame(flattened_json_responses)
 
+    except ValueError:
+        pass
+        
     df.show()
 
-    df.createOrReplaceTempView("lichess_main")
+    df.createOrReplaceTempView("lichess_raw")
 
-    df.write.mode('append').parquet("output_data/" + "lichess_main/")
+    Path("output_data/lichess_raw/").mkdir(parents=True, exist_ok=True)
 
-    moves_table = spark.sql("""
+    df.write.mode('append').parquet("output_data/" + "lichess_raw/")
+
+    staging_table = spark.sql("""
 
                     select
                         from_unixtime(createdAt/1000, 'dd-MM-yyyy hh:mm:ss') as game_start,
@@ -74,12 +80,14 @@ def load_json_files_to_spark(url, nbgames):
                         players_white_rating as white_player_rating,
                         status,
                         winner
-                    from lichess_main
+                    from lichess_raw
         """)
 
-    moves_table.show()
+    staging_table.show()
 
-    moves_table.write.mode('append').parquet("output_data/" + "moves/")
+    Path("output_data/staging_table/").mkdir(parents=True, exist_ok=True)
+
+    staging_table.write.mode('append').parquet("output_data/" + "staging_table/")
 
  
 
