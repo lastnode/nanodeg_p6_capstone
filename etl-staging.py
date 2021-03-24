@@ -46,8 +46,6 @@ def load_json_files_to_staging(url, nbgames):
 
     df.createOrReplaceTempView("lichess_raw")
 
-    Path("output_data/lichess_raw/").mkdir(parents=True, exist_ok=True)
-
     df.write.mode('append').parquet("output_data/" + "lichess_raw/")
 
     staging_table = spark.sql("""
@@ -74,9 +72,7 @@ def load_json_files_to_staging(url, nbgames):
 
     staging_table.show()
 
-    Path("output_data/staging/").mkdir(parents=True, exist_ok=True)
-
-    staging_table.write.mode('append').parquet("output_data/" + "staging_table/")
+    staging_table.write.mode('append').parquet("output_data/" + "staging/")
 
  
 
@@ -94,11 +90,13 @@ def flatten_json(json_responses):
 
     return full_flattened_json
 
+
 def get_lichess_games(player_list, nbgames):
 
     for player in player_list:
 
         load_json_files_to_staging("https://lichess.org/api/games/user/" + player, nbgames)
+
 
 def main():
 
