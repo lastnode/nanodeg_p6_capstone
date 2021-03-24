@@ -14,14 +14,14 @@ sc = SparkContext(conf=conf)
 sqlContext = SQLContext(sc)
 
 
-def load_json_files_to_spark(url, nbgames):
+def load_json_files_to_staging(url, nbgames):
 
     spark = SparkSession \
     .builder \
     .appName("DataCleansing") \
     .getOrCreate()
 
-    params = {'max': nbgames}
+    params = {'max': nbgames, 'opening': 'true'}
 
     headers = {'Accept': 'application/x-ndjson'}
 
@@ -59,6 +59,8 @@ def load_json_files_to_spark(url, nbgames):
                         id,
                         speed,
                         moves,
+                        opening_name,
+                        opening_ply,
                         case             
                             when moves like "%d4 Nf6%" then "A45-A46 Queen's pawn game" 
                             when moves like "%d4 d5%" then "D00 Queen's pawn game"                                                                                                              
@@ -71,7 +73,7 @@ def load_json_files_to_spark(url, nbgames):
                             when moves like "%d4 Nf6 c4 e6 Nf3%" then "E10 Queen's pawn game"                            
                             when moves like "%e4 e5%" then "C20 King's pawn game"                            
                             else null 
-                        end as opening,
+                        end as opening_computed,
                         players_black_user_name as black_player_name,
                         players_black_user_title as black_player_title,
                         players_black_rating as black_player_rating,
@@ -109,7 +111,9 @@ def get_lichess_games(player_list):
 
     for player in player_list:
 
-        load_json_files_to_spark("https://lichess.org/api/games/user/" + player, 10)
+        load_json_files_to_staging("https://lichess.org/api/games/user/" + player, 10)
+
+
 
 
 def main():
