@@ -61,19 +61,6 @@ def load_json_files_to_staging(url, nbgames):
                         moves,
                         opening_name,
                         opening_ply,
-                        case             
-                            when moves like "%d4 Nf6%" then "A45-A46 Queen's pawn game" 
-                            when moves like "%d4 d5%" then "D00 Queen's pawn game"                                                                                                              
-                            when moves like "%d4 d5%" then "D00 Queen's pawn game"                                                                                                              
-                            when moves like "%e4 e5 Nf3 Nc6 Bb5%" then "C60-C99 Ruy Lopez (Spanish opening)"
-                            when moves like "%e4 c5%" then "B20-B99 Sicilian defence"
-                            when moves like "%e4 c6%" then "B10-B19 Caro-Kann defence"
-                            when moves like "%d4 d5 c4 dxc4%" then "D20 Queen's gambit accepted"
-                            when moves like "%d4 d5 c4 e6%" then "D30-D42 Queen's gambit declined"                            
-                            when moves like "%d4 Nf6 c4 e6 Nf3%" then "E10 Queen's pawn game"                            
-                            when moves like "%e4 e5%" then "C20 King's pawn game"                            
-                            else null 
-                        end as opening_computed,
                         players_black_user_name as black_player_name,
                         players_black_user_title as black_player_title,
                         players_black_rating as black_player_rating,
@@ -87,7 +74,7 @@ def load_json_files_to_staging(url, nbgames):
 
     staging_table.show()
 
-    Path("output_data/staging_table/").mkdir(parents=True, exist_ok=True)
+    Path("output_data/staging/").mkdir(parents=True, exist_ok=True)
 
     staging_table.write.mode('append').parquet("output_data/" + "staging_table/")
 
@@ -107,20 +94,19 @@ def flatten_json(json_responses):
 
     return full_flattened_json
 
-def get_lichess_games(player_list):
+def get_lichess_games(player_list, nbgames):
 
     for player in player_list:
 
-        load_json_files_to_staging("https://lichess.org/api/games/user/" + player, 10)
-
-
-
+        load_json_files_to_staging("https://lichess.org/api/games/user/" + player, nbgames)
 
 def main():
 
     players = ["alireza2003", "Konevlad", "neslraCsungaM77", "Vladimirovich9000", "sp1cycaterpillar", "Federicov93", "may6enexttime", "Kelevra317", "nihalsarin2004", " Drvitman", "DrNykterstein", "C9C9C9C9C9", "muisback", "Inventing_Invention", "RebeccaHarris", "drop_stone", "Alexander_Zubov", "IWANNABEADOORED", "Kelevra317", "dolar9", "cutemouse83"]
 
-    get_lichess_games(players)
+    nbgames = 10
+
+    get_lichess_games(players, nbgames)
 
 if __name__ == "__main__":
     main()
