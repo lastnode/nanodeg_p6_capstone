@@ -7,18 +7,12 @@ from datetime import datetime
 import os
 from flatten_json import flatten
 
-    
-conf = SparkConf()
-conf.setMaster("local")
-sc = SparkContext(conf=conf)
-sqlContext = SQLContext(sc)
-
 
 def load_json_files_to_staging(url, nbgames):
 
     spark = SparkSession \
     .builder \
-    .appName("DataCleansing") \
+    .appName("Ingesting Lichess API via Spark") \
     .getOrCreate()
 
     params = {'max': nbgames, 'opening': 'true'}
