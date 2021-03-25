@@ -37,7 +37,7 @@ moves_table = spark.sql("""
 
 moves_table.show()
 
-moves_table.write.mode('append').parquet("output_data/" + "moves/")
+moves_table.write.mode('append').parquet("output_data/fact/" + "moves/")
 
 openings_table = spark.sql("""
 
