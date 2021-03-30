@@ -28,7 +28,7 @@ async def load_json_files_to_staging(url, nbgames):
     for line in json_lines:
         json_data.append(json.loads(line))
  
-    flattened_json_responses = asyncio.gather(flatten_json(json_data))
+    flattened_json_responses = flatten_json(json_data)
 
     try:
         df = spark.createDataFrame(flattened_json_responses)
@@ -43,7 +43,7 @@ async def load_json_files_to_staging(url, nbgames):
         pass
         
 
-async def flatten_json(json_responses):
+def flatten_json(json_responses):
 
     full_flattened_json = []
 
