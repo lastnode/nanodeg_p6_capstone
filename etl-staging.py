@@ -6,9 +6,9 @@ import requests, json
 from datetime import datetime
 import os
 from flatten_json import flatten
+import asyncio
 
-
-def load_json_files_to_staging(url, nbgames):
+async def load_json_files_to_staging(url, nbgames):
 
     spark = SparkSession \
     .builder \
@@ -28,7 +28,7 @@ def load_json_files_to_staging(url, nbgames):
     for line in json_lines:
         json_data.append(json.loads(line))
  
-    flattened_json_responses = flatten_json(json_data)
+    flattened_json_responses = asyncio.gather(flatten_json(json_data))
 
     try:
         df = spark.createDataFrame(flattened_json_responses)
@@ -39,17 +39,11 @@ def load_json_files_to_staging(url, nbgames):
 
         df.write.mode('append').parquet("output_data/" + "staging/")
 
-        
-
     except ValueError:
         pass
         
 
-
-
- 
-
-def flatten_json(json_responses):
+async def flatten_json(json_responses):
 
     full_flattened_json = []
 
@@ -64,20 +58,21 @@ def flatten_json(json_responses):
     return full_flattened_json
 
 
-def get_lichess_games(player_list, nbgames):
+async def get_lichess_games(player_list, nbgames):
 
     for player in player_list:
 
-        load_json_files_to_staging("https://lichess.org/api/games/user/" + player, nbgames)
+        await asyncio.gather(load_json_files_to_staging("https://lichess.org/api/games/user/" + player, nbgames))
 
 
-def main():
+async def main():
 
     players = ["alireza2003", "Konevlad", "neslraCsungaM77", "Vladimirovich9000", "sp1cycaterpillar", "Federicov93", "may6enexttime", "Kelevra317", "nihalsarin2004", " Drvitman", "DrNykterstein", "C9C9C9C9C9", "muisback", "Inventing_Invention", "RebeccaHarris", "drop_stone", "Alexander_Zubov", "IWANNABEADOORED", "Kelevra317", "dolar9", "cutemouse83"]
 
-    nbgames = 10
+    nbgames = 1000
 
-    get_lichess_games(players, nbgames)
+    await asyncio.gather(get_lichess_games(players, nbgames))
+
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

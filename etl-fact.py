@@ -13,6 +13,11 @@ df = spark.read.parquet("output_data/staging/*")
 
 df.createOrReplaceTempView("staging")
 
+df_csv = spark.read.option("header",True).csv("output_data/chess_openings.csv")
+
+
+df_csv.createOrReplaceTempView("staging_openings")
+
 moves_table = spark.sql("""
 
                         select
@@ -21,9 +26,10 @@ moves_table = spark.sql("""
                             lastMoveAt/1000 - createdAt/1000 as game_length_seconds,
                             id,
                             speed,
-                            moves,
-                            opening_name,
-                            opening_ply,
+                            staging.moves,
+                            staging.opening_name,
+                            staging.opening_ply,
+                            staging_openings.name as openings_csv,
                             players_black_user_name as black_player_name,
                             players_black_user_title as black_player_title,
                             players_black_rating as black_player_rating,
@@ -33,6 +39,8 @@ moves_table = spark.sql("""
                             status,
                             winner
                         from staging
+
+                        left join staging_openings on staging.moves LIKE CONCAT('%', substr(staging_openings.moves,0,8) ,'%')
             """)
 
 moves_table.show()
