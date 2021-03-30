@@ -27,6 +27,7 @@ moves_table = spark.sql("""
                             id,
                             speed,
                             staging.moves,
+                            staging.opening_eco,
                             staging.opening_name,
                             staging.opening_ply,
                             staging_openings.name as openings_csv,
