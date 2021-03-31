@@ -8,13 +8,14 @@ spark = SparkSession \
     .appName("Ingesting Lichess API via Spark") \
     .getOrCreate()
 
+    output_data = 's3a://lichess-test-mw1/'
 
-df = spark.read.parquet("output_data/staging/*")
+
+df = spark.read.parquet(output_data + "staging/*")
 
 df.createOrReplaceTempView("staging")
 
-df_csv = spark.read.option("header",True).csv("output_data/chess_openings.csv")
-
+#df_csv = spark.read.option("header",True).csv("output_data/chess_openings.csv")
 
 df_csv.createOrReplaceTempView("staging_openings")
 
@@ -48,7 +49,7 @@ moves_table_cleaned = moves_table.dropDuplicates(['id'])
 
 moves_table_cleaned.show()
 
-moves_table_cleaned.write.mode('append').parquet("output_data/fact/" + "moves/")
+moves_table_cleaned.write.mode('append').parquet(output_data +"/fact/" + "moves/")
 
 openings_table = spark.sql("""
 
@@ -63,4 +64,4 @@ openings_table = spark.sql("""
 				
 				""")
 
-openings_table.write.mode('append').parquet("output_data/fact/" + "openings/")
+openings_table.write.mode('append').parquet(output_data +"/fact/" + "openings/")

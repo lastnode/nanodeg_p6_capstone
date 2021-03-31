@@ -7,13 +7,27 @@ from datetime import datetime
 import os
 from flatten_json import flatten
 import asyncio
+import configparser
+
+config = configparser.ConfigParser()
+config.read('dl.cfg')
+
+os.environ['AWS_ACCESS_KEY_ID']=config['AWS']['AWS_ACCESS_KEY_ID']
+os.environ['AWS_SECRET_ACCESS_KEY']=config['AWS']['AWS_SECRET_ACCESS_KEY']
+
 
 async def load_json_files_to_staging(url, nbgames):
+
+    output_data = 's3a://lichess-test-mw1/'
 
     spark = SparkSession \
     .builder \
     .appName("Ingesting Lichess API via Spark") \
     .getOrCreate()
+
+    # Setting the MapReduce algorithm to v2, as suggested by Tran Nguyen here -
+    # https://towardsdatascience.com/some-issues-when-building-an-aws-data-lake-using-spark-and-how-to-deal-with-these-issues-529ce246ba59
+    spark.conf.set("mapreduce.fileoutputcommitter.algorithm.version", "2") 
 
     params = {'max': nbgames, 'opening': 'true'}
 
@@ -37,7 +51,7 @@ async def load_json_files_to_staging(url, nbgames):
 
         df.createOrReplaceTempView("staging")
 
-        df.write.mode('append').parquet("output_data/" + "staging/")
+        df.write.mode('append').parquet(output_data + "staging/")
 
     except ValueError:
         pass
