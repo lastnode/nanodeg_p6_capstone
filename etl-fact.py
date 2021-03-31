@@ -8,16 +8,12 @@ spark = SparkSession \
     .appName("Ingesting Lichess API via Spark") \
     .getOrCreate()
 
-    output_data = 's3a://lichess-test-mw1/'
+output_data = 's3a://lichess-test-mw1/'
 
 
 df = spark.read.parquet(output_data + "staging/*")
 
 df.createOrReplaceTempView("staging")
-
-#df_csv = spark.read.option("header",True).csv("output_data/chess_openings.csv")
-
-df_csv.createOrReplaceTempView("staging_openings")
 
 moves_table = spark.sql("""
 
@@ -31,7 +27,6 @@ moves_table = spark.sql("""
                             staging.opening_eco,
                             staging.opening_name,
                             staging.opening_ply,
-                            staging_openings.name as openings_csv,
                             players_black_user_name as black_player_name,
                             players_black_user_title as black_player_title,
                             players_black_rating as black_player_rating,
@@ -42,14 +37,13 @@ moves_table = spark.sql("""
                             winner
                         from staging
 
-                        left join staging_openings on staging.moves LIKE CONCAT('%', substr(staging_openings.moves,0,8) ,'%')
             """)
 
 moves_table_cleaned = moves_table.dropDuplicates(['id'])
 
 moves_table_cleaned.show()
 
-moves_table_cleaned.write.mode('append').parquet(output_data +"/fact/" + "moves/")
+moves_table_cleaned.write.mode('append').parquet(output_data +"fact/" + "moves/")
 
 openings_table = spark.sql("""
 
@@ -64,4 +58,4 @@ openings_table = spark.sql("""
 				
 				""")
 
-openings_table.write.mode('append').parquet(output_data +"/fact/" + "openings/")
+openings_table.write.mode('append').parquet(output_data +"fact/" + "openings/")
