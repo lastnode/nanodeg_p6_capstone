@@ -44,9 +44,11 @@ moves_table = spark.sql("""
                         left join staging_openings on staging.moves LIKE CONCAT('%', substr(staging_openings.moves,0,8) ,'%')
             """)
 
-moves_table.show()
+moves_table_cleaned = moves_table.dropDuplicates(['id'])
 
-moves_table.write.mode('append').parquet("output_data/fact/" + "moves/")
+moves_table_cleaned.show()
+
+moves_table_cleaned.write.mode('append').parquet("output_data/fact/" + "moves/")
 
 openings_table = spark.sql("""
 
