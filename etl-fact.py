@@ -1,15 +1,34 @@
 from pyspark import SparkContext, SparkConf
 from pyspark.sql import SparkSession
 from pyspark import SQLContext
+import argparse
+import yaml
 
+with open(r'dl.yaml') as file:
+    config = yaml.load(file)
 
 spark = SparkSession \
     .builder \
     .appName("Ingesting Lichess API via Spark") \
     .getOrCreate()
 
-output_data = 's3a://lichess-test-mw1/'
+parser = argparse.ArgumentParser(
+    prog='etl-staging.py',
+    description="""ETL Script that extracts data from
+        Lichess API and loads them into a staging table in
+        parquet files.""")
 
+parser.add_argument(
+    '-l', '--local',
+    action='store_true',
+    help="""Save data locally instead of outputting to s3.""")
+
+args, _ = parser.parse_known_args()
+
+if args.local:
+    output_data = config['output_data_path_local']
+else:
+    output_data = config['output_data_path_s3']
 
 df = spark.read.parquet(output_data + "staging/*")
 
