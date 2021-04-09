@@ -103,7 +103,7 @@ async def main():
 
     print(players)
 
-    nbgames = 10
+    nbgames = config['games_per_player']
 
     if args.local:
         print("Saving outputd data locally instead of writing to s3 bucket.")
