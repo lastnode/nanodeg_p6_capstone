@@ -9,6 +9,7 @@ from flatten_json import flatten
 import asyncio
 import configparser
 import yaml
+import argparse
 
 with open(r'dl.yaml') as file:
     config = yaml.load(file)
@@ -17,9 +18,12 @@ os.environ['AWS_ACCESS_KEY_ID']=config['aws_access_key_id']
 os.environ['AWS_SECRET_ACCESS_KEY']=config['aws_secret_key_id']
 
 
-async def load_json_files_to_staging(url, nbgames):
+async def load_json_files_to_staging(url, nbgames, local):
 
-    output_data = config['output_data_path_local']
+    if local == True:
+        output_data = config['output_data_path_local']
+    else:
+        output_data = config['output_data_path_s3']
 
     spark = SparkSession \
     .builder \
@@ -73,14 +77,27 @@ def flatten_json(json_responses):
     return full_flattened_json
 
 
-async def get_lichess_games(player_list, nbgames):
+async def get_lichess_games(player_list, nbgames, local):
 
     for player in player_list:
 
-        await asyncio.gather(load_json_files_to_staging("https://lichess.org/api/games/user/" + player, nbgames))
+        await asyncio.gather(load_json_files_to_staging("https://lichess.org/api/games/user/" + player, nbgames, local))
 
 
 async def main():
+
+    parser = argparse.ArgumentParser(
+        prog='etl-staging.py',
+        description="""ETL Script that extracts data from
+            Lichess API and loads them into a staging table in
+            parquet files.""")
+
+    parser.add_argument(
+        '-l', '--local',
+        action='store_true',
+        help="""Save data locally instead of outputting to s3.""")
+
+    args, _ = parser.parse_known_args()
 
     players = config['lichess_players']
 
@@ -88,8 +105,12 @@ async def main():
 
     nbgames = 10
 
-    await asyncio.gather(get_lichess_games(players, nbgames))
+    if args.local:
+        print("Saving outputd data locally instead of writing to s3 bucket.")
 
+        await asyncio.gather(get_lichess_games(players, nbgames, True))
+    else:
+        await asyncio.gather(get_lichess_games(players, nbgames, False))
 
 if __name__ == "__main__":
     asyncio.run(main())
