@@ -8,17 +8,18 @@ import os
 from flatten_json import flatten
 import asyncio
 import configparser
+import yaml
 
-config = configparser.ConfigParser()
-config.read('dl.cfg')
+with open(r'dl.yaml') as file:
+    config = yaml.load(file)
 
-os.environ['AWS_ACCESS_KEY_ID']=config['AWS']['AWS_ACCESS_KEY_ID']
-os.environ['AWS_SECRET_ACCESS_KEY']=config['AWS']['AWS_SECRET_ACCESS_KEY']
+os.environ['AWS_ACCESS_KEY_ID']=config['aws_access_key_id']
+os.environ['AWS_SECRET_ACCESS_KEY']=config['aws_secret_key_id']
 
 
 async def load_json_files_to_staging(url, nbgames):
 
-    output_data = 's3a://lichess-test-mw1/'
+    output_data = config['output_data_path_local']
 
     spark = SparkSession \
     .builder \
@@ -81,9 +82,11 @@ async def get_lichess_games(player_list, nbgames):
 
 async def main():
 
-    players = ["alireza2003", "Konevlad", "neslraCsungaM77", "Vladimirovich9000", "sp1cycaterpillar", "Federicov93", "may6enexttime", "Kelevra317", "nihalsarin2004", " Drvitman", "DrNykterstein", "C9C9C9C9C9", "muisback", "Inventing_Invention", "RebeccaHarris", "drop_stone", "Alexander_Zubov", "IWANNABEADOORED", "Kelevra317", "dolar9", "cutemouse83"]
+    players = config['lichess_players']
 
-    nbgames = 1000
+    print(players)
+
+    nbgames = 10
 
     await asyncio.gather(get_lichess_games(players, nbgames))
 
