@@ -15,12 +15,28 @@ def get_eco_from_pgn(pgn_text):
     
     return game.tag_pairs["ECO"]
 
+def get_termination_from_pgn(pgn_text):
+
+    game = parser.parse(pgn_text, actions=pgn.Actions())
+    
+    return game.tag_pairs["Termination"]
+
+
+def get_moves_from_pgn(pgn_text):
+
+    game = parser.parse(pgn_text, actions=pgn.Actions())
+    
+    return str(game.movetext)
+
+
 spark = SparkSession \
     .builder \
     .appName("Ingesting Lichess API via Spark") \
     .getOrCreate()
 
 spark.udf.register("get_eco_from_pgn", get_eco_from_pgn)
+spark.udf.register("get_termination_from_pgn", get_termination_from_pgn)
+spark.udf.register("get_moves_from_pgn", get_moves_from_pgn)
 
 parser = argparse.ArgumentParser(
     prog='etl-staging.py',
@@ -61,7 +77,9 @@ moves_table = spark.sql("""
                                 when (white_result = "agree" or black_result = "agree") then "draw"
                                 when (white_result = "stalemate" or black_result = "stalemate") then "stalemate"
                             end as winner,
-                            get_eco_from_pgn(pgn) as eco
+                            get_termination_from_pgn(pgn) as termination,
+                            get_eco_from_pgn(pgn) as eco,
+                            get_moves_from_pgn(pgn) as moves
                         from staging
 
                         order by game_end
