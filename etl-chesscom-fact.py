@@ -18,7 +18,9 @@ def get_eco_from_pgn(pgn_text):
 
         eco_url_split = eco_url.split("/")
 
-        return eco_url_split[-1] # Return the last element of the list (the part after the last / character)
+        eco_url_replaced = eco_url_split[-1].replace("-"," ") 
+
+        return eco_url_replaced # Return the last element of the list (the part after the last / character)
 
     except:
             pass
@@ -73,7 +75,7 @@ if args.local:
 else:
     output_data = config['output_data_path_s3']
 
-df = spark.read.parquet(output_data + "staging/chessdotcom_local_v2/*")
+df = spark.read.parquet(output_data + "staging/chessdotcom_local_v2/part-00007-ffc2a6b1-63f6-42b3-b3ec-a6d79d7e1af2-c000.snappy.parquet")
 
 df.createOrReplaceTempView("staging")
 
