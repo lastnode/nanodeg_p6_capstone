@@ -44,31 +44,34 @@ def load_json_files_to_staging(url, local):
 
     games = json.loads(response)
 
-    print(type(games))
-
-    #print(games)
-
     games = games.pop('games')
-
-    print(type(games))
 
     full_flattened_json = []
 
+    pd_df = pd.DataFrame([])
+
     for game in games:
 
-        try:
-       
-            flattened_json = pd.json_normalize(game, sep="_")
+        flattened_json = pd.json_normalize(game, sep="_")
 
-            full_flattened_json.append(flattened_json)   
+        full_flattened_json.append(flattened_json)   
 
-            spark_main_df = spark.createDataFrame(flattened_json)
+        print(type(flattened_json))
 
-            spark_main_df.write.mode('append').parquet(output_data + "staging/chessdotcom_local_v2/")
-            
-        except ValueError:
-            pass
+        pd_df = pd_df.append(flattened_json)
+           
+    print(pd_df)
 
+    #url_cleaned = url.replace("//","").replace(".","").replace("https","").replace("/","")
+
+    url_split = url.split("/")
+
+    pd_df.to_parquet(output_data + "staging/chessdotcom_local_v3/" + url_split[5] + "_" + url_split[7] + "_" + url_split[8] + '.parquet')
+
+
+    #spark_main_df = spark.createDataFrame(pd_df)
+
+    #spark_main_df.write.mode('append').parquet(output_data + "staging/chessdotcom_local_v3/")
 
 
 def get_chesscom_games(player_list, max_games, local):
