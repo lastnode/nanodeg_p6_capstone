@@ -58,8 +58,6 @@ def load_json_files_to_staging(url, local):
 
             full_flattened_json.append(flattened_json)   
 
-            print(type(flattened_json))
-
             pd_df = pd_df.append(flattened_json)
 
         except:
