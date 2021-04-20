@@ -64,7 +64,7 @@ def load_json_files_to_staging(url, local):
 
             spark_main_df = spark.createDataFrame(flattened_json)
 
-            spark_main_df.write.mode('append').parquet(output_data + "staging/")
+            spark_main_df.write.mode('append').parquet(output_data + "staging/chessdotcom_local_v2/")
             
         except ValueError:
             pass

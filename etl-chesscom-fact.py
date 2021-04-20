@@ -11,22 +11,39 @@ with open(r'dl.yaml') as file:
 
 def get_eco_from_pgn(pgn_text):
 
-    game = parser.parse(pgn_text, actions=pgn.Actions())
+    try:
+        game = parser.parse(pgn_text, actions=pgn.Actions())
     
-    return game.tag_pairs["ECO"]
+        eco_url = game.tag_pairs["ECOUrl"]
+
+        eco_url_split = eco_url.split("/")
+
+        return eco_url_split[-1] # Return the last element of the list (the part after the last / character)
+
+    except:
+            pass
+
 
 def get_termination_from_pgn(pgn_text):
 
-    game = parser.parse(pgn_text, actions=pgn.Actions())
+    try:
+        game = parser.parse(pgn_text, actions=pgn.Actions())
     
-    return game.tag_pairs["Termination"]
+        return game.tag_pairs["Termination"]
+
+    except:
+            pass
 
 
 def get_moves_from_pgn(pgn_text):
 
-    game = parser.parse(pgn_text, actions=pgn.Actions())
+    try: 
+        game = parser.parse(pgn_text, actions=pgn.Actions())
     
-    return str(game.movetext)
+        return str(game.movetext)
+
+    except:
+            pass
 
 
 spark = SparkSession \
@@ -56,14 +73,15 @@ if args.local:
 else:
     output_data = config['output_data_path_s3']
 
-df = spark.read.parquet(output_data + "staging/*")
+df = spark.read.parquet(output_data + "staging/chessdotcom_local_v2/*")
 
 df.createOrReplaceTempView("staging")
 
 moves_table = spark.sql("""
 
                         select
-                            from_unixtime(end_time, 'dd-MM-yyyy hh:mm:ss') as game_end,
+                            from_unixtime(end_time, 'yyyy-MM-dd hh:mm:ss') as game_end_time,
+                            from_unixtime(end_time, 'yyyy-MM-dd') as game_end_date,
                             time_class,
                             rated,
                             rules,
@@ -82,7 +100,7 @@ moves_table = spark.sql("""
                             get_moves_from_pgn(pgn) as moves
                         from staging
 
-                        order by game_end
+                        order by game_end_time
 
             """)
 
@@ -90,5 +108,5 @@ moves_table = spark.sql("""
 
 #moves_table_cleaned.show()
 
-moves_table.write.mode('append').parquet(output_data +"fact/" + "moves/")
+moves_table.write.mode('append').parquet(output_data +"fact/" + "moves2/")
 
