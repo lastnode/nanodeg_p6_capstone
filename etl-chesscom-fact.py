@@ -75,7 +75,7 @@ if args.local:
 else:
     output_data = config['output_data_path_s3']
 
-df = spark.read.parquet(output_data + "staging/chessdotcom_local_v2/part-00007-ffc2a6b1-63f6-42b3-b3ec-a6d79d7e1af2-c000.snappy.parquet")
+df = spark.read.parquet(output_data + "staging/chessdotcom_local_v3/*")
 
 df.createOrReplaceTempView("staging")
 
@@ -110,5 +110,5 @@ moves_table = spark.sql("""
 
 #moves_table_cleaned.show()
 
-moves_table.write.mode('append').parquet(output_data +"fact/" + "moves2/")
+moves_table.write.mode('append').parquet(output_data +"fact/" + "moves3/")
 

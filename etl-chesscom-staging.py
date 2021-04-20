@@ -52,22 +52,24 @@ def load_json_files_to_staging(url, local):
 
     for game in games:
 
-        flattened_json = pd.json_normalize(game, sep="_")
+        try:
 
-        full_flattened_json.append(flattened_json)   
+            flattened_json = pd.json_normalize(game, sep="_")
 
-        print(type(flattened_json))
+            full_flattened_json.append(flattened_json)   
 
-        pd_df = pd_df.append(flattened_json)
+            print(type(flattened_json))
+
+            pd_df = pd_df.append(flattened_json)
+
+        except:
+            pass
            
     print(pd_df)
-
-    #url_cleaned = url.replace("//","").replace(".","").replace("https","").replace("/","")
 
     url_split = url.split("/")
 
     pd_df.to_parquet(output_data + "staging/chessdotcom_local_v3/" + url_split[5] + "_" + url_split[7] + "_" + url_split[8] + '.parquet')
-
 
     #spark_main_df = spark.createDataFrame(pd_df)
 
