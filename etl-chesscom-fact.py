@@ -18,9 +18,9 @@ def get_eco_from_pgn(pgn_text):
 
         eco_url_split = eco_url.split("/")
 
-        eco_url_replaced = eco_url_split[-1].replace("-"," ") 
+        eco_url_replaced = eco_url_split[-1].replace("-"," ") # Return the last element of the list (the part after the last / character)
 
-        return eco_url_replaced # Return the last element of the list (the part after the last / character)
+        return eco_url_replaced 
 
     except:
             pass
@@ -111,4 +111,18 @@ moves_table = spark.sql("""
 #moves_table_cleaned.show()
 
 moves_table.write.mode('append').parquet(output_data +"fact/" + "moves3/")
+
+openings_table = spark.sql("""
+
+                        select
+                            get_eco_from_pgn(pgn) as eco,
+                            count(*) as game_count
+                        from staging
+
+                        group by eco
+                        order by game_count
+
+            """)
+
+openings_table.write.mode('append').parquet(output_data +"fact/" + "openings3/")
 
