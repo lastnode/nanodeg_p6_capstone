@@ -1,19 +1,8 @@
-from pyspark import SparkContext, SparkConf
-from pyspark.sql import SparkSession
-from pyspark import SQLContext
-from pathlib import Path
-import requests, json
-from datetime import datetime
-import os
-from flatten_json import flatten
-import asyncio
-import configparser
-import yaml
-import argparse
-from chessdotcom import get_player_games_by_month, get_player_game_archives
-import collections
 import pandas as pd
-from pyspark.sql.types import StructType,StructField,StringType,BooleanType
+from datetime import datetime
+import yaml, argparse, os, requests, json
+from chessdotcom import get_player_games_by_month, get_player_game_archives
+
 
 with open(r'dl-chesscom.yaml') as file:
     config = yaml.load(file)
@@ -30,15 +19,6 @@ def load_json_files_to_staging(url, local):
         output_data = config['output_data_path_local']
     else:
         output_data = config['output_data_path_s3']
-
-    spark = SparkSession \
-    .builder \
-    .appName("Ingesting Lichess API via Spark") \
-    .getOrCreate()
-
-    # Setting the MapReduce algorithm to v2, as suggested by Tran Nguyen here -
-    # https://towardsdatascience.com/some-issues-when-building-an-aws-data-lake-using-spark-and-how-to-deal-with-these-issues-529ce246ba59
-    spark.conf.set("mapreduce.fileoutputcommitter.algorithm.version", "2") 
 
     response = requests.get(url).text
 
