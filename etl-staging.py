@@ -1,6 +1,3 @@
-from pyspark import SparkContext, SparkConf
-from pyspark.sql import SparkSession
-from pyspark import SQLContext
 from pathlib import Path
 import requests, json
 from datetime import datetime
@@ -10,8 +7,9 @@ import asyncio
 import configparser
 import yaml
 import argparse
+import pandas as pd
 
-with open(r'dl.yaml') as file:
+with open(r'dl-lichess.yaml') as file:
     config = yaml.load(file)
 
 os.environ['AWS_ACCESS_KEY_ID']=config['aws_access_key_id']
@@ -25,16 +23,7 @@ async def load_json_files_to_staging(url, nbgames, local):
     else:
         output_data = config['output_data_path_s3']
 
-    spark = SparkSession \
-    .builder \
-    .appName("Ingesting Lichess API via Spark") \
-    .getOrCreate()
-
-    # Setting the MapReduce algorithm to v2, as suggested by Tran Nguyen here -
-    # https://towardsdatascience.com/some-issues-when-building-an-aws-data-lake-using-spark-and-how-to-deal-with-these-issues-529ce246ba59
-    spark.conf.set("mapreduce.fileoutputcommitter.algorithm.version", "2") 
-
-    params = {'max': nbgames, 'opening': 'true'}
+    params = {'opening': 'true'}
 
     headers = {'Accept': 'application/x-ndjson'}
 
@@ -44,23 +33,32 @@ async def load_json_files_to_staging(url, nbgames, local):
 
     json_data = []
 
+    pd_df = pd.DataFrame([])
+
+
     for line in json_lines:
         json_data.append(json.loads(line))
  
     flattened_json_responses = flatten_json(json_data)
 
     try:
-        df = spark.createDataFrame(flattened_json_responses)
+        # df = spark.createDataFrame(flattened_json_responses)
+
+        pd_df = pd_df.append(flattened_json_responses)
         
-        df.show()
+        # df.show()
+        
+        # df.createOrReplaceTempView("staging")
 
-        df.createOrReplaceTempView("staging")
-
-        df.write.mode('append').parquet(output_data + "staging/")
+        #df.write.mode('append').parquet(output_data + "staging/lichess_local_v1")
 
     except ValueError:
         pass
-        
+    
+    url_split = url.split("/")
+
+    pd_df.to_parquet(output_data + "staging/lichess_local_v1/" + url_split[6] + '.parquet')
+
 
 def flatten_json(json_responses):
 
@@ -103,7 +101,7 @@ async def main():
 
     print(players)
 
-    nbgames = config['games_per_player']
+    nbgames = config['max_games_per_player']
 
     if args.local:
         print("Saving outputd data locally instead of writing to s3 bucket.")
