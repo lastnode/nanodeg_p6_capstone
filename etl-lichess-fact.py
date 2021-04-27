@@ -9,45 +9,6 @@ with open(r'dl-lichess.yaml') as file:
     config = yaml.load(file)
 
 
-def get_eco_from_pgn(pgn_text):
-
-    try:
-        game = parser.parse(pgn_text, actions=pgn.Actions())
-    
-        eco_url = game.tag_pairs["ECOUrl"]
-
-        eco_url_split = eco_url.split("/")
-
-        eco_url_replaced = eco_url_split[-1].replace("-"," ") # Return the last element of the list (the part after the last / character)
-
-        return eco_url_replaced 
-
-    except:
-            pass
-
-
-def get_termination_from_pgn(pgn_text):
-
-    try:
-        game = parser.parse(pgn_text, actions=pgn.Actions())
-    
-        return game.tag_pairs["Termination"]
-
-    except:
-            pass
-
-
-def get_moves_from_pgn(pgn_text):
-
-    try: 
-        game = parser.parse(pgn_text, actions=pgn.Actions())
-    
-        return str(game.movetext)
-
-    except:
-            pass
-
-
 spark = SparkSession \
     .builder \
     .appName("Ingesting Lichess API via Spark") \
@@ -56,11 +17,6 @@ spark = SparkSession \
 # Setting the MapReduce algorithm to v2, as suggested by Tran Nguyen here -
 # https://towardsdatascience.com/some-issues-when-building-an-aws-data-lake-using-spark-and-how-to-deal-with-these-issues-529ce246ba59
 spark.conf.set("mapreduce.fileoutputcommitter.algorithm.version", "2") 
-
-
-spark.udf.register("get_eco_from_pgn", get_eco_from_pgn)
-spark.udf.register("get_termination_from_pgn", get_termination_from_pgn)
-spark.udf.register("get_moves_from_pgn", get_moves_from_pgn)
 
 parser = argparse.ArgumentParser(
     prog='etl-staging.py',
