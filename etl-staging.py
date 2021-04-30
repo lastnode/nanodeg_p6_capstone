@@ -29,6 +29,8 @@ async def load_json_files_to_staging(url, nbgames, local):
 
     response = requests.get(url, headers=headers, params=params).text
 
+    print("Fetched data from" + url)
+
     json_lines = response.splitlines()
 
     json_data = []
@@ -57,7 +59,11 @@ async def load_json_files_to_staging(url, nbgames, local):
     
     url_split = url.split("/")
 
-    pd_df.to_parquet(output_data + "staging/lichess_local_v1/" + url_split[6] + '.parquet')
+    try:
+        pd_df.to_parquet(output_data + "staging/lichess_local_v1/" + url_split[6] + '.parquet')
+
+    except:
+        pass
 
 
 def flatten_json(json_responses):
