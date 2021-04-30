@@ -5,7 +5,7 @@ import argparse
 import yaml
 from pgn_parser import parser, pgn
 
-with open(r'dl.yaml') as file:
+with open(r'dl-chesscom.yaml') as file:
     config = yaml.load(file)
 
 
@@ -75,9 +75,9 @@ if args.local:
 else:
     output_data = config['output_data_path_s3']
 
-df = spark.read.parquet(output_data + "staging/chessdotcom_local_v3/*")
+df = spark.read.parquet(output_data + "staging/chessdotcom_local_v3/1*")
 
-df.createOrReplaceTempView("staging")
+df.createOrReplaceTempView("chessdotcom_staging")
 
 moves_table = spark.sql("""
 
@@ -86,7 +86,6 @@ moves_table = spark.sql("""
                             from_unixtime(end_time, 'yyyy-MM-dd') as game_end_date,
                             time_class,
                             rated,
-                            rules,
                             white_username,
                             white_rating,
                             black_username,
@@ -98,9 +97,10 @@ moves_table = spark.sql("""
                                 when (white_result = "stalemate" or black_result = "stalemate") then "stalemate"
                             end as winner,
                             get_termination_from_pgn(pgn) as termination,
-                            get_eco_from_pgn(pgn) as eco,
-                            get_moves_from_pgn(pgn) as moves
-                        from staging
+                            get_eco_from_pgn(pgn) as opening,
+                            get_moves_from_pgn(pgn) as moves,
+                            'chessdotcom' as platform
+                        from chessdotcom_staging
 
                         order by game_end_time
 
@@ -110,19 +110,20 @@ moves_table = spark.sql("""
 
 #moves_table_cleaned.show()
 
-moves_table.write.mode('append').parquet(output_data +"fact/" + "moves3/")
+moves_table.write.mode('append').parquet(output_data +"fact/chessdotcom/" + "moves6/")
 
-openings_table = spark.sql("""
-
-                        select
-                            get_eco_from_pgn(pgn) as eco,
-                            count(*) as game_count
-                        from staging
-
-                        group by eco
-                        order by game_count
-
-            """)
-
-openings_table.write.mode('append').parquet(output_data +"fact/" + "openings3/")
+# 
+# openings_table = spark.sql("""
+# 
+# select
+# get_eco_from_pgn(pgn) as eco,
+# count(*) as game_count
+# from chessdotcom_staging
+# 
+# group by eco
+# order by game_count
+# 
+# """)
+# 
+# openings_table.write.mode('append').parquet(output_data +"fact/" + "openings5/")
 

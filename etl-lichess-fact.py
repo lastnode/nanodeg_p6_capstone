@@ -57,7 +57,8 @@ moves_table = spark.sql("""
                             end as winner,
                             status as termination,
                             opening_name as opening,
-                            moves
+                            moves,
+                            'lichess' as platform
                         from lichess_staging
 
                         order by game_end_time
@@ -68,20 +69,20 @@ moves_table = spark.sql("""
 
 #moves_table_cleaned.show()
 
-moves_table.write.mode('append').parquet(output_data +"fact/lichess/" + "moves5/")
+moves_table.write.mode('append').parquet(output_data +"fact/lichess/" + "moves6/")
 
-openings_table = spark.sql("""
-
-                        select
-                            opening_name as opening,
-                            from_unixtime(lastMoveAt/1000, 'yyyy') as game_year,
-                            count(*) as game_count
-                        from lichess_staging
-
-                        group by opening, game_year
-                        order by game_count asc
-
-            """)
-
-openings_table.write.mode('append').parquet(output_data +"fact/lichess/" + "openings5/")
+# openings_table = spark.sql("""
+# 
+                        # select
+                            # opening_name as opening,
+                            # from_unixtime(lastMoveAt/1000, 'yyyy') as game_year,
+                            # count(*) as game_count
+                        # from lichess_staging
+# 
+                        # group by opening, game_year
+                        # order by game_count asc
+# 
+            # """)
+# 
+# openings_table.write.mode('append').parquet(output_data +"fact/lichess/" + "openings5/")
 
