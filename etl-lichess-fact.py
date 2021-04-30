@@ -45,12 +45,16 @@ moves_table = spark.sql("""
                         select
                             from_unixtime(lastMoveAt/1000, 'yyyy-MM-dd hh:mm:ss') as game_end_time,
                             from_unixtime(lastMoveAt/1000, 'yyyy-MM-dd') as game_end_date,
-                            perf as time_class,
+                            speed as time_class,
                             players_white_user_name as white_username,
                             players_white_rating as white_rating,
                             players_black_user_name as black_username,
                             players_black_rating as black_rating,
-                            winner,
+                            case
+                                when winner = "black" then "black"
+                                when winner = "white" then "white"
+                                when winner = "" then status
+                            end as winner,
                             status as termination,
                             opening_name as opening,
                             moves
@@ -64,7 +68,7 @@ moves_table = spark.sql("""
 
 #moves_table_cleaned.show()
 
-moves_table.write.mode('append').parquet(output_data +"fact/lichess/" + "moves1/")
+moves_table.write.mode('append').parquet(output_data +"fact/lichess/" + "moves5/")
 
 openings_table = spark.sql("""
 
@@ -79,5 +83,5 @@ openings_table = spark.sql("""
 
             """)
 
-openings_table.write.mode('append').parquet(output_data +"fact/lichess/" + "openings1/")
+openings_table.write.mode('append').parquet(output_data +"fact/lichess/" + "openings5/")
 
