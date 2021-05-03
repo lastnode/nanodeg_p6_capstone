@@ -7,12 +7,6 @@ import yaml
 import os
 from pgn_parser import parser, pgn
 
-with open(r'dl-chesscom.yaml') as file:
-    config = yaml.load(file,Loader=yaml.SafeLoader)
-
-os.environ['AWS_ACCESS_KEY_ID']=config['aws_access_key_id']
-os.environ['AWS_SECRET_ACCESS_KEY']=config['aws_secret_key_id']
-
 def get_eco_from_pgn(pgn_text):
 
     try:
@@ -53,6 +47,12 @@ def get_moves_from_pgn(pgn_text):
 
 
 def main():
+    
+    with open(r'dl-chesscom.yaml') as file:
+        config = yaml.load(file,Loader=yaml.SafeLoader)
+
+    os.environ['AWS_ACCESS_KEY_ID']=config['aws_access_key_id']
+    os.environ['AWS_SECRET_ACCESS_KEY']=config['aws_secret_key_id']
 
     parser = argparse.ArgumentParser(
     prog='etl-staging.py',
