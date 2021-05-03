@@ -9,6 +9,20 @@ from pgn_parser import parser, pgn
 
 def get_eco_from_pgn(pgn_text):
 
+    """
+    Receives the `pgn` column from Spark SQL and uses the
+    `pgn_parser` module to extract  the `ECOUrl` field from
+    the PGN string, before doing a string replace on it to 
+    remove dashes and return the full name of the ECO.
+    
+    Parameters:
+    - pgn_text - The text of the `pgn` column, as passed in by Spark SQL.
+ 
+    Returns:
+    - eco_url_replaced - The ECO name, as extracted from the ECOUrl field
+    of the PGN text.
+    """
+
     try:
         game = parser.parse(pgn_text, actions=pgn.Actions())
     
@@ -26,6 +40,19 @@ def get_eco_from_pgn(pgn_text):
 
 def get_termination_from_pgn(pgn_text):
 
+    """
+    Receives the `pgn` column from Spark SQL and uses the
+    `pgn_parser` module to extract  the `Termination` field from
+    the PGN string and return it.
+    
+    Parameters:
+    - pgn_text - The text of the `pgn` column, as passed in by Spark SQL.
+ 
+    Returns:
+    - game.tag_pairs["Termination"] - The `Termination` field,
+     as extracted from the Termination field  of the PGN text.
+    """
+
     try:
         game = parser.parse(pgn_text, actions=pgn.Actions())
     
@@ -37,6 +64,19 @@ def get_termination_from_pgn(pgn_text):
 
 def get_moves_from_pgn(pgn_text):
 
+    """
+    Receives the `pgn` column from Spark SQL and uses the
+    `pgn_parser` module to extract the game moves from
+    the PGN string and return it.
+    
+    Parameters:
+    - pgn_text - The text of the `pgn` column, as passed in by Spark SQL.
+ 
+    Returns:
+    - game.movetext - The moves of the game, as extracted from the
+    Termination field  of the PGN text.
+    """
+
     try: 
         game = parser.parse(pgn_text, actions=pgn.Actions())
     
@@ -47,7 +87,29 @@ def get_moves_from_pgn(pgn_text):
 
 
 def main():
+
+    """
+    The main function of the ETL script. Reads command line
+    arguments via argparse, to see whether the user wants to
+    use local data or s3 data.
+
+    Creates a Spark Session, sets Hadoop s3a settings, and then
+    reads the `*.parquet` files from the `raw/chessdotcom/` dir.
+
+    Thereafter, calls the following PySpark UDFs within Spark SQL
+    to transform the data:
+
+    1) get_eco_from_pgn()
+    2) get_termination_from_pgn()
+    2) get_moves_from_pgn()
+
     
+    Params: 
+    None
+    Returns:
+    None
+    """
+
     with open(r'dl-chesscom.yaml') as file:
         config = yaml.load(file,Loader=yaml.SafeLoader)
 
@@ -67,29 +129,36 @@ def main():
 
     args, _ = parser.parse_known_args()   
 
+    # If --local CLI flag is set, use local path.
+    # Else use S3 path
+
     if args.local:
         output_data = config['output_data_path_local']
     else:
         output_data = config['output_data_path_s3']
 
+    # Create SparkSession
     spark = SparkSession \
         .builder \
         .appName("Ingesting Chess.com API via Spark") \
         .config('spark.jars.packages', 'org.apache.hadoop:hadoop-aws:3.3.0')\
         .getOrCreate()
 
+    # Setting the MapReduce algorithm to v2, as suggested by Tran Nguyen here -
+    # https://towardsdatascience.com/some-issues-when-building-an-aws-data-lake-using-spark-and-how-to-deal-with-these-issues-529ce246ba59
     spark.conf.set("mapreduce.fileoutputcommitter.algorithm.version", "2") 
 
+    # Setting s3a configs
     spark.sparkContext._jsc.hadoopConfiguration().set("fs.s3a.aws.credentials.provider","org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider")
     spark.sparkContext._jsc.hadoopConfiguration().set("fs.s3a.access.key",config['aws_access_key_id'])
     spark.sparkContext._jsc.hadoopConfiguration().set("fs.s3a.secret.key",config['aws_secret_key_id'])
 
-
+    # Register PySpark UDFs - https://sparkbyexamples.com/pyspark/pyspark-udf-user-defined-function/
     spark.udf.register("get_eco_from_pgn", get_eco_from_pgn)
     spark.udf.register("get_termination_from_pgn", get_termination_from_pgn)
     spark.udf.register("get_moves_from_pgn", get_moves_from_pgn)
 
-    df = spark.read.parquet(output_data + "raw/chessdotcom/*")
+    df = spark.read.parquet(output_data + "raw/chessdotcom/g*")
 
     df.createOrReplaceTempView("chessdotcom_staging")
 
