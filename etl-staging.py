@@ -6,6 +6,8 @@ import argparse
 import yaml
 import os
 from pgn_parser import parser, pgn
+from sql_queries import games_table_chessdotcom,games_table_lichess
+from sys import exit
 
 def get_eco_from_pgn(pgn_text):
 
@@ -128,13 +130,21 @@ def main():
     parser = argparse.ArgumentParser(
     prog='etl-staging.py',
     description="""ETL Script that extracts data from
-        Lichess API and loads them into a staging table in
-        parquet files.""")
+        raw parquet files extracted from the Chess.com / Lichess 
+        APIs and loads them into a staging table in parquet files.""")
 
     parser.add_argument(
         '-l', '--local',
         action='store_true',
         help="""Save data locally instead of outputting to s3.""")
+
+    parser.add_argument('--platform',
+                        dest='platform',
+                        default='chessdotcom',
+                        const="chessdotcom",
+                        type=str,
+                        nargs='?',
+                        help='Transform Chess.com or Lichess raw. data')
 
     args, _ = parser.parse_known_args()   
 
@@ -145,6 +155,42 @@ def main():
         output_data = config['output_data_path_local']
     else:
         output_data = config['output_data_path_s3']
+
+
+    # Read --platform= CLI flag to see which platform
+    # we are performing the transformations on.
+
+    print(args.platform)
+
+    if args.platform == "chessdotcom":
+        
+        user_selected_platform = "chessdotcom"
+    
+    elif args.platform == "lichess":
+
+        user_selected_platform = "lichess"
+
+    else:
+        print("No platform selected. Please set either '--platform=chessdotcom' or '--platform=lichess'")
+        exit()
+
+    # Create the Spark session
+    spark = create_spark_session(config)
+
+    process_data(spark, output_data, user_selected_platform)
+
+def create_spark_session(config):
+
+    """
+    Creates a Spark Session and returns it
+    so that other functions can use it.
+
+    Paramters:
+    None
+    
+    Returns:
+    A Spark Session Object
+    """
 
     # Create SparkSession
     spark = SparkSession \
@@ -163,51 +209,43 @@ def main():
     spark.sparkContext._jsc.hadoopConfiguration().set("fs.s3a.secret.key",config['aws_secret_key_id'])
 
     # Register PySpark UDFs - https://sparkbyexamples.com/pyspark/pyspark-udf-user-defined-function/
+    # (We only use this for the chess.com transformations.)
     spark.udf.register("get_eco_from_pgn", get_eco_from_pgn)
     spark.udf.register("get_termination_from_pgn", get_termination_from_pgn)
     spark.udf.register("get_moves_from_pgn", get_moves_from_pgn)
 
+    return spark
+
+def process_data(spark, output_data, platform):
+
     try:
         # Read from raw data parquet files and create df
 
-        df = spark.read.parquet(output_data + "raw/chessdotcom/g*")
+        if platform == "chessdotcom":
+        
+            df = spark.read.parquet(output_data + "raw/chessdotcom/*.parquet")
 
-        df.createOrReplaceTempView("chessdotcom_staging")
+            df.createOrReplaceTempView("chessdotcom_staging")
 
-        games_table = spark.sql("""
+            games_table = spark.sql(games_table_chessdotcom)
 
-                                select
-                                    from_unixtime(end_time, 'yyyy-MM-dd hh:mm:ss') as game_end_time,
-                                    from_unixtime(end_time, 'yyyy-MM-dd') as game_end_date,
-                                    time_class,
-                                    rated,
-                                    white_username,
-                                    white_rating,
-                                    black_username,
-                                    black_rating,
-                                    case
-                                        when white_result = "win" then "white"
-                                        when black_result = "win" then "black"
-                                        when (white_result = "agree" or black_result = "agree") then "draw"
-                                        when (white_result = "stalemate" or black_result = "stalemate") then "stalemate"
-                                    end as winner,
-                                    get_termination_from_pgn(pgn) as termination,
-                                    get_eco_from_pgn(pgn) as opening,
-                                    get_moves_from_pgn(pgn) as moves,
-                                    'chessdotcom' as platform
-                                from chessdotcom_staging
+        elif platform == "lichess":
 
-                                order by game_end_time
+            df = spark.read.parquet(output_data + "raw/lichess/*.parquet")
 
-                    """)
+            df.createOrReplaceTempView("lichess_staging")
+
+            games_table = spark.sql(games_table_lichess)
     
-    except Exception as error:
-        print(f"An exception occurred {error}")
-
-    try:
         # Write transformed table to parquet files in staging dir
 
-        games_table.write.mode('append').parquet(output_data +"staging/chessdotcom/" + "games/")
+        if platform == "chessdotcom":
+
+            games_table.write.mode('append').parquet(output_data +"staging/chessdotcom/" + "games2/")
+
+        elif platform == "lichess":
+
+            games_table.write.mode('append').parquet(output_data +"staging/lichess/" + "games2/")
 
     except Exception as error:
         print(f"An exception occurred {error}")
