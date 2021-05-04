@@ -8,6 +8,7 @@ import configparser
 import yaml
 import argparse
 import pandas as pd
+import s3fs
 
 with open(r'dl-lichess.yaml') as file:
     config = yaml.load(file)
@@ -44,26 +45,24 @@ async def load_json_files_to_staging(url, nbgames, local):
     flattened_json_responses = flatten_json(json_data)
 
     try:
-        # df = spark.createDataFrame(flattened_json_responses)
 
         pd_df = pd_df.append(flattened_json_responses)
-        
-        # df.show()
-        
-        # df.createOrReplaceTempView("staging")
-
-        #df.write.mode('append').parquet(output_data + "staging/lichess_local_v1")
-
-    except ValueError:
-        pass
+              
+    except Exception as error:
+        print(f"An exception occurred {error}")
     
     url_split = url.split("/")
 
     try:
-        pd_df.to_parquet(output_data + "staging/lichess_local_v1/" + url_split[6] + '.parquet')
 
-    except:
-        pass
+        if local == True:
+            pd_df.to_parquet(output_data + "raw/lichess/" + url_split[6] + '.parquet')
+
+        elif local == False:
+            pd_df.to_parquet("s3://" + output_data + "raw/lichess/" + url_split[6] + '.parquet')
+
+    except Exception as error:
+        print(f"An exception occurred {error}")
 
 
 def flatten_json(json_responses):
