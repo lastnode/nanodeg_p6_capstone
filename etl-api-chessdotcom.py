@@ -55,7 +55,7 @@ def load_json_files_to_staging(url, local, config):
 
     url_split = url.split("/")
         
-    pd_df.to_parquet(output_data + "raw/chessdotcom3/" + url_split[5] + "_" + url_split[7] + "_" + url_split[8] + '.parquet')
+    pd_df.to_parquet(output_data + "raw/chessdotcom/" + url_split[5] + "_" + url_split[7] + "_" + url_split[8] + '.parquet')
 
 
 
