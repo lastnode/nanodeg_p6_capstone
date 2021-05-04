@@ -8,6 +8,24 @@ from pgn_parser import parser, pgn
 
 def main():
 
+
+    """
+    The main function of the ETL script. Reads command line
+    arguments via argparse, to see whether the user wants to
+    use local data or s3 data.
+
+    Creates a Spark Session, sets Hadoop s3a settings, and then
+    reads the `*.parquet` files from the `raw/chessdotcom/` dir.
+
+    Thereafter, it runs a transformation that extracts the necessary
+    columns and writes them to `staging/lichess/games`.
+    
+    Params: 
+    None
+    Returns:
+    None
+    """
+
     with open(r'dl-chesscom.yaml') as file:
         config = yaml.load(file,Loader=yaml.SafeLoader)
 

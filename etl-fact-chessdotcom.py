@@ -96,13 +96,14 @@ def main():
     Creates a Spark Session, sets Hadoop s3a settings, and then
     reads the `*.parquet` files from the `raw/chessdotcom/` dir.
 
-    Thereafter, calls the following PySpark UDFs within Spark SQL
+    Then, it calls the following PySpark UDFs within Spark SQL
     to transform the data:
 
     1) get_eco_from_pgn()
     2) get_termination_from_pgn()
     2) get_moves_from_pgn()
 
+    Finally, it writes the output table to `staging/chessdotcom/games`.
     
     Params: 
     None
