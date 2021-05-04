@@ -111,11 +111,19 @@ def main():
     None
     """
 
+    #Load settings from yaml file
+
     with open(r'dl-chesscom.yaml') as file:
         config = yaml.load(file,Loader=yaml.SafeLoader)
 
+    # Sets AWS access environment variables, even though
+    # this is strictly not necessary now, since we use
+    # `SimpleAWSCredentialsProvider` as the cred provider.
+
     os.environ['AWS_ACCESS_KEY_ID']=config['aws_access_key_id']
     os.environ['AWS_SECRET_ACCESS_KEY']=config['aws_secret_key_id']
+
+    # Grab CLI args from argparse.
 
     parser = argparse.ArgumentParser(
     prog='etl-staging.py',
@@ -159,38 +167,50 @@ def main():
     spark.udf.register("get_termination_from_pgn", get_termination_from_pgn)
     spark.udf.register("get_moves_from_pgn", get_moves_from_pgn)
 
-    df = spark.read.parquet(output_data + "raw/chessdotcom/g*")
+    try:
+        # Read from raw data parquet files and create df
 
-    df.createOrReplaceTempView("chessdotcom_staging")
+        df = spark.read.parquet(output_data + "raw/chessdotcom/g*")
 
-    games_table = spark.sql("""
+        df.createOrReplaceTempView("chessdotcom_staging")
 
-                            select
-                                from_unixtime(end_time, 'yyyy-MM-dd hh:mm:ss') as game_end_time,
-                                from_unixtime(end_time, 'yyyy-MM-dd') as game_end_date,
-                                time_class,
-                                rated,
-                                white_username,
-                                white_rating,
-                                black_username,
-                                black_rating,
-                                case
-                                    when white_result = "win" then "white"
-                                    when black_result = "win" then "black"
-                                    when (white_result = "agree" or black_result = "agree") then "draw"
-                                    when (white_result = "stalemate" or black_result = "stalemate") then "stalemate"
-                                end as winner,
-                                get_termination_from_pgn(pgn) as termination,
-                                get_eco_from_pgn(pgn) as opening,
-                                get_moves_from_pgn(pgn) as moves,
-                                'chessdotcom' as platform
-                            from chessdotcom_staging
+        games_table = spark.sql("""
 
-                            order by game_end_time
+                                select
+                                    from_unixtime(end_time, 'yyyy-MM-dd hh:mm:ss') as game_end_time,
+                                    from_unixtime(end_time, 'yyyy-MM-dd') as game_end_date,
+                                    time_class,
+                                    rated,
+                                    white_username,
+                                    white_rating,
+                                    black_username,
+                                    black_rating,
+                                    case
+                                        when white_result = "win" then "white"
+                                        when black_result = "win" then "black"
+                                        when (white_result = "agree" or black_result = "agree") then "draw"
+                                        when (white_result = "stalemate" or black_result = "stalemate") then "stalemate"
+                                    end as winner,
+                                    get_termination_from_pgn(pgn) as termination,
+                                    get_eco_from_pgn(pgn) as opening,
+                                    get_moves_from_pgn(pgn) as moves,
+                                    'chessdotcom' as platform
+                                from chessdotcom_staging
 
-                """)
+                                order by game_end_time
 
-    games_table.write.mode('append').parquet(output_data +"staging/chessdotcom/" + "games/")
+                    """)
+    
+    except Exception as error:
+        print(f"An exception occurred {error}")
+
+    try:
+        # Write transformed table to parquet files in staging dir
+
+        games_table.write.mode('append').parquet(output_data +"staging/chessdotcom/" + "games/")
+
+    except Exception as error:
+        print(f"An exception occurred {error}")
 
 if __name__ == "__main__":
     main()

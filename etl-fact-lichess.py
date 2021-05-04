@@ -26,8 +26,19 @@ def main():
     None
     """
 
+    #Load settings from yaml file
+
     with open(r'dl-chesscom.yaml') as file:
         config = yaml.load(file,Loader=yaml.SafeLoader)
+
+    # Sets AWS access environment variables, even though
+    # this is strictly not necessary now, since we use
+    # `SimpleAWSCredentialsProvider` as the cred provider.
+
+    os.environ['AWS_ACCESS_KEY_ID']=config['aws_access_key_id']
+    os.environ['AWS_SECRET_ACCESS_KEY']=config['aws_secret_key_id']
+
+    # Grab CLI args from argparse.
 
     parser = argparse.ArgumentParser(
         prog='etl-staging.py',
@@ -42,14 +53,15 @@ def main():
 
     args, _ = parser.parse_known_args()
 
+    # If --local CLI flag is set, use local path.
+    # Else use S3 path
+
     if args.local:
         output_data = config['output_data_path_local']
     else:
         output_data = config['output_data_path_s3']
 
-    os.environ['AWS_ACCESS_KEY_ID']=config['aws_access_key_id']
-    os.environ['AWS_SECRET_ACCESS_KEY']=config['aws_secret_key_id']
-
+    # Create SparkSession
     spark = SparkSession \
         .builder \
         .appName("Cleaning Lichess data via Spark") \
@@ -59,11 +71,14 @@ def main():
     # https://towardsdatascience.com/some-issues-when-building-an-aws-data-lake-using-spark-and-how-to-deal-with-these-issues-529ce246ba59
     spark.conf.set("mapreduce.fileoutputcommitter.algorithm.version", "2") 
 
+    # Setting s3a configs
     spark.sparkContext._jsc.hadoopConfiguration().set("fs.s3a.aws.credentials.provider","org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider")
     spark.sparkContext._jsc.hadoopConfiguration().set("fs.s3a.access.key",config['aws_access_key_id'])
     spark.sparkContext._jsc.hadoopConfiguration().set("fs.s3a.secret.key",config['aws_secret_key_id'])
 
     try:
+        # Read from raw data parquet files and create df
+
         df = spark.read.parquet(output_data + "staging/lichess/*.parquet")
 
         df.createOrReplaceTempView("lichess_staging")
@@ -92,15 +107,17 @@ def main():
                                 order by game_end_time
                     """)
 
-    except:
-        pass
+    except Exception as error:
+        print(f"An exception occurred {error}")
 
-
+    
     try: 
+        # Write transformed table to parquet files in staging dir
+        
         games_table.write.mode('append').parquet(output_data +"staging/lichess/" + "games/")
 
-    except: 
-        pass
+    except Exception as error:
+        print(f"An exception occurred {error}")
 
 
 if __name__ == "__main__":
