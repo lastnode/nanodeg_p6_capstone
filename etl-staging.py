@@ -12,6 +12,8 @@ from sys import exit
 def get_eco_from_pgn(pgn_text):
 
     """
+    Only used for Chess.com transformations.
+
     Receives the `pgn` column from Spark SQL and uses the
     `pgn_parser` module to extract  the `ECOUrl` field from
     the PGN string, before doing a string replace on it to 
@@ -43,6 +45,8 @@ def get_eco_from_pgn(pgn_text):
 def get_termination_from_pgn(pgn_text):
 
     """
+    Only used for Chess.com transformations.
+
     Receives the `pgn` column from Spark SQL and uses the
     `pgn_parser` module to extract  the `Termination` field from
     the PGN string and return it.
@@ -67,6 +71,8 @@ def get_termination_from_pgn(pgn_text):
 def get_moves_from_pgn(pgn_text):
 
     """
+    Only used for Chess.com transformations.
+
     Receives the `pgn` column from Spark SQL and uses the
     `pgn_parser` module to extract the game moves from
     the PGN string and return it.
@@ -140,7 +146,6 @@ def main():
 
     parser.add_argument('--platform',
                         dest='platform',
-                        default='chessdotcom',
                         const="chessdotcom",
                         type=str,
                         nargs='?',
@@ -160,8 +165,6 @@ def main():
     # Read --platform= CLI flag to see which platform
     # we are performing the transformations on.
 
-    print(args.platform)
-
     if args.platform == "chessdotcom":
         
         user_selected_platform = "chessdotcom"
@@ -171,15 +174,15 @@ def main():
         user_selected_platform = "lichess"
 
     else:
-        print("No platform selected. Please set either '--platform=chessdotcom' or '--platform=lichess'")
+        print("Error:\n No platform selected. Please set either '--platform=chessdotcom' or '--platform=lichess'")
         exit()
 
     # Create the Spark session
-    spark = create_spark_session(config)
+    spark = create_spark_session(config, user_selected_platform)
 
     process_data(spark, output_data, user_selected_platform)
 
-def create_spark_session(config):
+def create_spark_session(config, platform):
 
     """
     Creates a Spark Session and returns it
@@ -209,10 +212,13 @@ def create_spark_session(config):
     spark.sparkContext._jsc.hadoopConfiguration().set("fs.s3a.secret.key",config['aws_secret_key_id'])
 
     # Register PySpark UDFs - https://sparkbyexamples.com/pyspark/pyspark-udf-user-defined-function/
-    # (We only use this for the chess.com transformations.)
-    spark.udf.register("get_eco_from_pgn", get_eco_from_pgn)
-    spark.udf.register("get_termination_from_pgn", get_termination_from_pgn)
-    spark.udf.register("get_moves_from_pgn", get_moves_from_pgn)
+    # But only if the platform is Chess.com, as we don't use these functions for Lichess.
+    
+    if platform == "chessdotcom":
+
+        spark.udf.register("get_eco_from_pgn", get_eco_from_pgn)
+        spark.udf.register("get_termination_from_pgn", get_termination_from_pgn)
+        spark.udf.register("get_moves_from_pgn", get_moves_from_pgn)
 
     return spark
 
