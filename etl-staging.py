@@ -159,7 +159,7 @@ def main():
     if args.local:
         output_data = config['output_data_path_local']
     else:
-        output_data = config['output_data_path_s3']
+        output_data = "s3a://" + config['output_data_path_s3']
 
 
     # Read --platform= CLI flag to see which platform

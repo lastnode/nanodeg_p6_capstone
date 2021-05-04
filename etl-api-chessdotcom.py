@@ -26,7 +26,7 @@ def load_json_files_to_staging(url, local, config):
     if local == True:
         output_data = config['output_data_path_local']
     else:
-        output_data = config['output_data_path_s3']
+        output_data = "s3://" + config['output_data_path_s3']
 
     response = requests.get(url).text
 
@@ -54,14 +54,9 @@ def load_json_files_to_staging(url, local, config):
     print(pd_df)
 
     url_split = url.split("/")
-
-    if local == True:
         
-        pd_df.to_parquet(output_data + "raw/chessdotcom/" + url_split[5] + "_" + url_split[7] + "_" + url_split[8] + '.parquet')
+    pd_df.to_parquet(output_data + "raw/chessdotcom3/" + url_split[5] + "_" + url_split[7] + "_" + url_split[8] + '.parquet')
 
-    elif local == False:
-        
-        pd_df.to_parquet("s3://" + output_data + "raw/chessdotcom/" + url_split[5] + "_" + url_split[7] + "_" + url_split[8] + '.parquet')
 
 
 def get_chesscom_games(player_list, local, config):

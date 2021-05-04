@@ -22,7 +22,7 @@ async def load_json_files_to_staging(url, nbgames, local):
     if local == True:
         output_data = config['output_data_path_local']
     else:
-        output_data = config['output_data_path_s3']
+        output_data = "s3://" + config['output_data_path_s3']
 
     params = {'opening': 'true'}
 
@@ -54,12 +54,7 @@ async def load_json_files_to_staging(url, nbgames, local):
     url_split = url.split("/")
 
     try:
-
-        if local == True:
             pd_df.to_parquet(output_data + "raw/lichess/" + url_split[6] + '.parquet')
-
-        elif local == False:
-            pd_df.to_parquet("s3://" + output_data + "raw/lichess/" + url_split[6] + '.parquet')
 
     except Exception as error:
         print(f"An exception occurred {error}")
