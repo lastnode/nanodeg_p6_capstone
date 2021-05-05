@@ -13,7 +13,9 @@ During this process, data is saved at each stage in [Apache Parquet](https://par
 
 # Data Model
 
-## Lichess API JSON 
+## Raw JSON Responses 
+
+### Lichess API JSON Response
 The Lichess API endpoint we are using to get games (`https://lichess.org/api/games/user/{username}`) returns a JSON blob that looks like this:
 
 ```
@@ -44,7 +46,7 @@ The Lichess API endpoint we are using to get games (`https://lichess.org/api/gam
 }
 ```
 
-## Chess.com API JSON 
+### Chess.com API JSON Response
 
 The Lichess API endpoint we are using to get games (`https://api.chess.com/pub/player/{username}/games/{YYYY}/{MM}`) returns a JSON blob that looks like this:
 
@@ -77,6 +79,64 @@ The Lichess API endpoint we are using to get games (`https://api.chess.com/pub/p
 
 These JSON blobs are flattened and then stored as `*.parquet` files in the `raw/` directory.
 
+## Staging Tables
+
+From there, we use Spark SQL transformations in the the `etl-staging.py`  script to create a staging table each for Chess.com and Lichess data.
+
+### Chessdotcom Staging
+
+```
+root
+ |-- game_end_time: string (nullable = true)
+ |-- game_end_date: string (nullable = true)
+ |-- time_class: string (nullable = true)
+ |-- rated: boolean (nullable = true)
+ |-- white_username: string (nullable = true)
+ |-- white_rating: long (nullable = true)
+ |-- black_username: string (nullable = true)
+ |-- black_rating: long (nullable = true)
+ |-- winner: string (nullable = true)
+ |-- termination: string (nullable = true)
+ |-- opening: string (nullable = true)
+ |-- moves: string (nullable = true)
+ |-- platform: string (nullable = true)
+ ```
+
+ ### Lichess Staging
+
+ ```
+ root
+ |-- game_end_time: string (nullable = true)
+ |-- game_end_date: string (nullable = true)
+ |-- time_class: string (nullable = true)
+ |-- white_username: string (nullable = true)
+ |-- white_rating: double (nullable = true)
+ |-- black_username: string (nullable = true)
+ |-- black_rating: double (nullable = true)
+ |-- winner: string (nullable = true)
+ |-- termination: string (nullable = true)
+ |-- opening: string (nullable = true)
+ |-- moves: string (nullable = true)
+ |-- platform: string (nullable = true)
+
+ ```
+
+## Games Fact Table
+
+### Final Transformations
+
+There is a difference in the number of columns between the two Chess.com / Lichess staging tables, for which reason we perform some final transformations in the `etl-fact-and-data-quality.py` script.
+
+1) Removing the extra `rated` column in the the Chess.com staging table before we union the tables.
+2) In the Lichess staging table, the `white_rating` and `black_rating` columns are of the `double` type, andwe. thus need to convert them to `int`s before we union the tables.
+3) Creating an `id` column by hashing the `game_end_time`, `white_username` and `black_username` columns.
+
+### Data Quality Checks
+
+After joining the Chess.com and Lichess fact tables, we perform these data quality checks on the final fact table:
+
+1) We use `.dropDuplicates()` on the `id` column to filter out any duplicate rows.
+
 
 # Files
 ```
@@ -84,6 +144,6 @@ These JSON blobs are flattened and then stored as `*.parquet` files in the `raw/
 - etl-api-lichess.py -- script that fetches data from the Lichess API
 - etl-api-chessdotcom.py -- script that fetches data from the Chess.com API
 - etl-staging.py -- script that takes the raw API data and outputs a staging table for each chess site
-- etl-data-quality.ipynb -- Jupyter notebook that unions the two staging tables and performs data quality checks
+- etl-fact-and-data-quality -- Jupyter notebook that unions the two staging tables and performs data quality checks before outputting a fact table
 - analytics.ipynb -- Jupyter notebook that runs the analytics queries and outputs the aggregate fact tables
 ```
