@@ -34,8 +34,6 @@ def load_json_files_to_staging(url, local, config):
 
     games = games.pop('games')
 
-    full_flattened_json = []
-
     pd_df = pd.DataFrame([])
 
     for game in games:
@@ -44,20 +42,23 @@ def load_json_files_to_staging(url, local, config):
 
             flattened_json = pd.json_normalize(game, sep="_")
 
-            full_flattened_json.append(flattened_json)   
-
             pd_df = pd_df.append(flattened_json)
 
         except:
             pass
            
-    print(pd_df)
+    try:        
+        url_split = url.split("/")
 
-    url_split = url.split("/")
+        # Write API response to parquet files in `raw` dir
+
+        write_path = output_data + "raw/chessdotcom2/" + url_split[5] + "_" + url_split[7] + "_" + url_split[8] + '.parquet'
         
-    pd_df.to_parquet(output_data + "raw/chessdotcom/" + url_split[5] + "_" + url_split[7] + "_" + url_split[8] + '.parquet')
+        print(f"Writing parquet file to path: {write_path}")    
+        pd_df.to_parquet(write_path)
 
-
+    except Exception as error:
+        print(f"An exception occurred {error}")
 
 def get_chesscom_games(player_list, local, config):
 
@@ -89,7 +90,7 @@ def get_chesscom_games(player_list, local, config):
 def main():
 
     """
-    The main function of the ETL API script. 
+    The main function of the ETL API Chess.com script. 
 
     Gets the list of players from the yaml file and
     reads command line  arguments via argparse, to see
@@ -104,11 +105,18 @@ def main():
     None
     """
 
+    #Load settings from yaml file
+
+
     with open(r'dl-chesscom.yaml') as file:
         config = yaml.load(file)
 
+    # Sets AWS access environment variables.
+
     os.environ['AWS_ACCESS_KEY_ID']=config['aws_access_key_id']
     os.environ['AWS_SECRET_ACCESS_KEY']=config['aws_secret_key_id']
+
+    # Grab CLI args from argparse.
 
     parser = argparse.ArgumentParser(
         prog='etl-staging.py',
