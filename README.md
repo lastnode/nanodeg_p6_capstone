@@ -124,7 +124,7 @@ The Lichess API endpoint we are using to get games (`https://api.chess.com/pub/p
 }
 ```
 
-These JSON blobs are flattened and then stored as `*.parquet` files in the `raw/` directory.
+These JSON blobs are flattened and then stored as `*.parquet` files in the `raw/` directory. The `pgn` field contains a [PGN](https://en.wikipedia.org/wiki/Portable_Game_Notation) blob that we need to parse separately in the `etl-staging-py.` script.
 
 ## 2) Staging Tables
 
@@ -300,7 +300,7 @@ aws_secret_key_id:
 output_data_path_local: local_data_dir/
 output_data_path_s3: s3_bucket_name/
 
-players:
+chessdotcom_players:
 - magnuscarlsen
 ```
 
