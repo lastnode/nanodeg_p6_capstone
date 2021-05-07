@@ -223,25 +223,25 @@ After joining the Chess.com and Lichess fact tables, we perform these data quali
 
 We then render these four dimension tables:
 
-### `player`
+### Player Table
 
 ![Image - Dimension Table - player](images/dim_player.png)
 
 Currently contains a hashed `player_id` and player name, but in the future more columns could be added that contain biographical info and lifetime stats.
 
-### `opening`
+### Opening Table
 
 ![Image - Dimension Table - opening](images/dim_opening.png)
 
 Currently contains a hashed `opening_id` and opening name, but in the future more columns could be added that contain information such as [Chess ECO codes](https://www.365chess.com/eco.php).
 
-### `time_class`
+### `Time Class Table
 
 ![Image - Dimension Table - time_class](images/dim_time_class.png)
 
 Contains a hashed `time_class_id` and time class name.
 
-### `platform`
+### Platform Table
 
 ![Image - Dimension Table - platform](images/dim_platform.png)
 
