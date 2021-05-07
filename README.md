@@ -30,9 +30,13 @@ The final data model includes one fact table:
 3. `platform`
 4. `time_class`
 
-The ERD for the model looks like this:
+The ERD for final model looks like this:
 
-![Image Project ERD](images/erd.png)
+![Image - Project ERD Model](images/erd.png)
+
+And the ETL process diagram looks like this:
+
+![Image - Project ETL Profcess](images/etl_process.png)
 
 Below, we go into the different stages the data went through to arrive at this final state.
 
@@ -220,6 +224,9 @@ We then render the four
 
 # Files
 ```
+- config/dl-lichess.yaml -- Lichess config file
+- config/dl-chessdotcom.yaml - Chess.com config file
+- images/erd.png - ERD image which is included in the README
 - README.md -- this file
 - etl-api-lichess.py -- script that fetches data from the Lichess API
 - etl-api-chessdotcom.py -- script that fetches data from the Chess.com API
@@ -230,9 +237,48 @@ We then render the four
 
 # Setup 
 
-## Configuring AWS Access Key
+## Setting up config files
+In the `config/` directory, you will find a separate config file for each platform.
 
-You will need to configure `config/dl-lichess.yaml` and `config/dl-chesscom.yaml` with your [AWS access key](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html) that allows you to connect to your S3 buckets.
+### Configuring AWS Access Key
+
+You will need to configure both `config/dl-lichess.yaml` and `config/dl-chessdotcom.yaml` with your [AWS access key](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html) that allows you to connect to your S3 buckets.
+
+
+### Lichess - `dl-lichess.yaml`
+
+```
+aws_access_key_id: 
+aws_secret_key_id: 
+
+output_data_path_local: local_data_dir/
+output_data_path_s3: s3_bucket_name/
+
+lichess_players:
+- drnykterstein
+
+max_games_per_player: ~
+```
+
+`lichess_players` is where you need to list the players whose chess game data you would like to collect via the `etl-api-lichess.py` script. The Lichess config file also has an extra `max_games_per_player` field which you can use to specify the number of games you would like to retrieve from each player. If left null (`~`), it will attempt to fetch all games that the player has played since their account creation.
+
+### Chess.com - `dl-chessdotcom.yaml`
+
+```
+aws_access_key_id: 
+aws_secret_key_id: 
+
+output_data_path_local: local_data_dir/
+output_data_path_s3: s3_bucket_name/
+
+players:
+- magnuscarlsen
+```
+
+`chessdotcom_players` is where you need to list the players whose chess game data you would like to collect via the `etl-api-chessdotcom.py` script.
+
+
+
 
 
 ## `etl-api-*.py`
