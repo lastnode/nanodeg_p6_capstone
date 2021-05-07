@@ -243,7 +243,7 @@ Contains a hashed `time_class_id` and time class name.
 
 ### `platform`
 
-![Image - Dimension Table - platform](images/platform.png)
+![Image - Dimension Table - platform](images/dim_platform.png)
 
 Contains a hashed `platform_id` and platform name. Currently only contains `lichess` and `chessdotcom`  but more platforms could be added in the future.
 
