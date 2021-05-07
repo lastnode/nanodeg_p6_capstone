@@ -211,7 +211,7 @@ root
 
 ```
 
-
+When writing the `games` table to `*.parquet` files, we partition them by both `year` and `time_class_id`, the rationale being that in general we will want to query games of the same year togetherk and that we'd mostly be interested in comparing game data within each time class.
 
 ### Data Quality Checks
 
