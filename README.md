@@ -1,13 +1,13 @@
 # Introduction
 
-A part of the [Udacity Data Engineering Nanodegree](https://www.udacity.com/course/data-engineer-nanodegree--nd027), this [ETL](https://en.wikipedia.org/wiki/Extract,_transform,_load) project was developed as the DEND's Capstone Project.
+A part of the [Udacity Data Engineering Nanodegree](https://www.udacity.com/course/data-engineer-nanodegree--nd027), this [ETL](https://en.wikipedia.org/wiki/Extract,_transform,_load) project was developed as the DEND's Capstone Project. 
 
-It pulls chess game data from two popular chess website APIs:
+The goal of the project was to combine chess game data from from two popular chess website APIs:
 
 1) [The Lichess.org API](https://lichess.org/api)
 2) [The Chess.com API](https://www.chess.com/news/view/published-data-api) — via the `chessdotcom` [Python module](https://pypi.org/project/chess.com/)
 
-— and then performs ETL operations on these data using [Apache Spark](https://spark.apache.org/) ([PySpark](https://spark.apache.org/docs/latest/api/python/index.html)), moving these 1M+ rows from a collection of raw API responses to finally rendering them as aggregate fact tables that display useful information regarding chess openings and players found in the dataset.
+This project first pulls these data via the APIs that both sites offerandthenthen performs ETL operations on these data using [Apache Spark](https://spark.apache.org/) ([PySpark](https://spark.apache.org/docs/latest/api/python/index.html)), moving these 1M+ rows from a collection of raw API responses to finally rendering them as aggregate fact tables that display useful information regarding chess openings and players found in the dataset.
 
 During this process, data is saved at each stage in [Apache Parquet](https://parquet.apache.org/) format, as it has [a number of advantages over other file formats such as CSV](https://blog.openbridge.com/how-to-be-a-hero-with-powerful-parquet-google-and-amazon-f2ae0f35ee04), including being a columnar storage format. Throughout this process, data can be saved both locally, or to [Amazon S3](https://aws.amazon.com/s3/).
 
@@ -37,29 +37,45 @@ The Lichess API endpoint we are using to get games (`https://lichess.org/api/gam
 
 ```
 {
-"id": "q7ZvsdUF",
-"rated": true,
-"variant": "standard",
-"speed": "blitz",
-"perf": "blitz",
-"createdAt": 1514505150384,
-"lastMoveAt": 1514505592843,
-"status": "draw",
-"players": {
-"white": {},
-"black": {}
-},
-"opening": {
-"eco": "D31",
-"name": "Semi-Slav Defense: Marshall Gambit",
-"ply": 7
-},
-"moves": "d4 d5 c4 c6 Nc3 e6 e4 Nd7 exd5 cxd5 cxd5 exd5 Nxd5 Nb6 Bb5+ Bd7 Qe2+ Ne7 Nxb6 Qxb6 Bxd7+ Kxd7 Nf3 Qa6 Ne5+ Ke8 Qf3 f6 Nd3 Qc6 Qe2 Kf7 O-O Kg8 Bd2 Re8 Rac1 Nf5 Be3 Qe6 Rfe1 g6 b3 Bd6 Qd2 Kf7 Bf4 Qd7 Bxd6 Nxd6 Nc5 Rxe1+ Rxe1 Qc6 f3 Re8 Rxe8 Nxe8 Kf2 Nc7 Qb4 b6 Qc4+ Nd5 Nd3 Qe6 Nb4 Ne7 Qxe6+ Kxe6 Ke3 Kd6 g3 h6 Kd3 h5 Nc2 Kd5 a3 Nc6 Ne3+ Kd6 h4 Nd8 g4 Ne6 Ke4 Ng7 Nc4+ Ke6 d5+ Kd7 a4 g5 gxh5 Nxh5 hxg5 fxg5 Kf5 Nf4 Ne3 Nh3 Kg4 Ng1 Nc4 Kc7 Nd2 Kd6 Kxg5 Kxd5 f4 Nh3+ Kg4 Nf2+ Kf3 Nd3 Ke3 Nc5 Kf3 Ke6 Ke3 Kf5 Kd4 Ne6+ Kc4",
-"clock": {
-"initial": 300,
-"increment": 3,
-"totalTime": 420
-}
+   "id":"q7ZvsdUF",
+   "rated":true,
+   "variant":"standard",
+   "speed":"blitz",
+   "perf":"blitz",
+   "createdAt":1514505150384,
+   "lastMoveAt":1514505592843,
+   "status":"draw",
+   "players":{
+      "white":{
+         "user":{
+            "name":"Lance5500",
+            "title":"LM",
+            "patron":true,
+            "id":"lance5500"
+         },
+         "rating":2389,
+         "ratingDiff":4
+      },
+      "black":{
+         "user":{
+            "name":"TryingHard87",
+            "id":"tryinghard87"
+         },
+         "rating":2498,
+         "ratingDiff":-4
+      }
+   },
+   "opening":{
+      "eco":"D31",
+      "name":"Semi-Slav Defense: Marshall Gambit",
+      "ply":7
+   },
+   "moves":"d4 d5 c4 c6 Nc3 e6 e4 Nd7 exd5 cxd5 cxd5 exd5 Nxd5 Nb6 Bb5+ Bd7 Qe2+ Ne7 Nxb6 Qxb6 Bxd7+ Kxd7 Nf3 Qa6 Ne5+ Ke8 Qf3 f6 Nd3 Qc6 Qe2 Kf7 O-O Kg8 Bd2 Re8 Rac1 Nf5 Be3 Qe6 Rfe1 g6 b3 Bd6 Qd2 Kf7 Bf4 Qd7 Bxd6 Nxd6 Nc5 Rxe1+ Rxe1 Qc6 f3 Re8 Rxe8 Nxe8 Kf2 Nc7 Qb4 b6 Qc4+ Nd5 Nd3 Qe6 Nb4 Ne7 Qxe6+ Kxe6 Ke3 Kd6 g3 h6 Kd3 h5 Nc2 Kd5 a3 Nc6 Ne3+ Kd6 h4 Nd8 g4 Ne6 Ke4 Ng7 Nc4+ Ke6 d5+ Kd7 a4 g5 gxh5 Nxh5 hxg5 fxg5 Kf5 Nf4 Ne3 Nh3 Kg4 Ng1 Nc4 Kc7 Nd2 Kd6 Kxg5 Kxd5 f4 Nh3+ Kg4 Nf2+ Kf3 Nd3 Ke3 Nc5 Kf3 Ke6 Ke3 Kf5 Kd4 Ne6+ Kc4",
+   "clock":{
+      "initial":300,
+      "increment":3,
+      "totalTime":420
+   }
 }
 ```
 
