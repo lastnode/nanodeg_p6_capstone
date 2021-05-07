@@ -13,6 +13,21 @@ During this process, data is saved at each stage in [Apache Parquet](https://par
 
 # Data Model
 
+The final data model includes one fact table:
+
+1. `games` 
+
+— and four dimension tables:
+
+1. `player`
+2. `opening`
+3. `platform`
+4. `time_class`
+
+The ERD for the model looks like this:
+
+![Image Project ERD](images/erd.png)
+
 ## Raw JSON Responses 
 
 ### Lichess API JSON Response
@@ -136,6 +151,9 @@ There is a difference in the number of columns between the two Chess.com / Liche
 After joining the Chess.com and Lichess fact tables, we perform these data quality checks on the final fact table:
 
 1) We use `.dropDuplicates()` on the `id` column to filter out any duplicate rows.
+
+
+### Output Dimension Tables: `openings`, `players`, `platforms` and 
 
 
 # Files
