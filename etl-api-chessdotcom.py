@@ -108,7 +108,7 @@ def main():
     #Load settings from yaml file
 
 
-    with open(r'dl-chesscom.yaml') as file:
+    with open(r'config/dl-chessdotcom.yaml') as file:
         config = yaml.load(file)
 
     # Sets AWS access environment variables.
@@ -130,11 +130,9 @@ def main():
 
     args, _ = parser.parse_known_args()
 
-    players = config['players']
+    players = config['chessdotcom_players']
 
     print(players)
-
-    max_games = config['max_games_per_player']
 
     if args.local:
         print("Saving outputd data locally instead of writing to s3 bucket.")
