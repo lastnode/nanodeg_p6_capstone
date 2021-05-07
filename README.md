@@ -9,7 +9,7 @@ The aim of the project was to combine chess game data from from two popular ches
 
 — and thereby allow the creation of a custom bank of chess games, from both of the Internet's two most popular chess sites.
 
-This project first pulls these data via the APIs that both sites offerandthenthen performs ETL operations on these data using [Apache Spark](https://spark.apache.org/) ([PySpark](https://spark.apache.org/docs/latest/api/python/index.html)), moving these 1M+ rows from a collection of raw API responses to finally rendering them as aggregate fact tables that display useful information regarding chess openings and players found in the dataset.
+This project first pulls these data via the APIs that both sites offer and then performs ETL operations on these data using [Apache Spark](https://spark.apache.org/) ([PySpark](https://spark.apache.org/docs/latest/api/python/index.html)), moving these 1M+ rows from a collection of raw API responses to finally rendering them as fact/dim tables that display useful information.
 
 During this process, data is saved at each stage in [Apache Parquet](https://parquet.apache.org/) format, as it has [a number of advantages over other file formats such as CSV](https://blog.openbridge.com/how-to-be-a-hero-with-powerful-parquet-google-and-amazon-f2ae0f35ee04), including being a columnar storage format. Throughout this process, data can be saved both locally, or to [Amazon S3](https://aws.amazon.com/s3/).
 
@@ -314,7 +314,7 @@ These two scripts do not require Spark to run. Instead, they fetch data from the
 
 `etl-api-lichess.py` -- `asyncio`, `flatten_json`, `pyyaml`, `argparse`, `os`, `requests`, `json`, `pathlib`, `s3fs`
 
-Note: The `chessdotcom` script uses [the `chessdotcom` Python module](https://pypi.org/project/chess.com/), which uses [aiohttp](https://pypi.org/project/aiohttp/) for asynchronous web requests. The`lichess` script uses [`asyncio`](https://docs.python.org/3/library/asyncio.html) to implement async fetchign manually.
+Note: The `chessdotcom` script uses [the `chessdotcom` Python module](https://pypi.org/project/chess.com/), which uses [aiohttp](https://pypi.org/project/aiohttp/) for asynchronous web requests. The`lichess` script uses [`asyncio`](https://docs.python.org/3/library/asyncio.html) to implement async fetching manually.
 
 ## `etl-staging.py`
 
@@ -326,7 +326,7 @@ If you plan to run the `etl-staging.py` script on a Spark cluster such as [Amazo
 sudo python3 -m pip install argparse pyyaml pgn_parser 
 ```
 
-Further, when you invoke`etl-staging.py` you will need to specify which plaform to pull the raw data from. For Lichess, use:
+Further, when you invoke`etl-staging.py` you will need to specify which platform to pull the raw data from. For Lichess, use:
 
 `python etl-staging.py --platform lichess`
 
