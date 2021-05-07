@@ -28,7 +28,9 @@ The ERD for the model looks like this:
 
 ![Image Project ERD](images/erd.png)
 
-## Raw JSON Responses 
+Below, we go into the different stages the data went through to arrive at this final state.
+
+## 1) Raw JSON Responses 
 
 ### Lichess API JSON Response
 The Lichess API endpoint we are using to get games (`https://lichess.org/api/games/user/{username}`) returns a JSON blob that looks like this:
@@ -94,7 +96,7 @@ The Lichess API endpoint we are using to get games (`https://api.chess.com/pub/p
 
 These JSON blobs are flattened and then stored as `*.parquet` files in the `raw/` directory.
 
-## Staging Tables
+## 2) Staging Tables
 
 From there, we use Spark SQL transformations in the the `etl-staging.py`  script to create a staging table each for Chess.com and Lichess data.
 
@@ -136,7 +138,7 @@ root
 
  ```
 
-## Games Fact Table
+## 3) Games Fact Table
 
 ### Final Transformations
 
@@ -153,7 +155,7 @@ After joining the Chess.com and Lichess fact tables, we perform these data quali
 1) We use `.dropDuplicates()` on the `id` column to filter out any duplicate rows.
 
 
-### Output Dimension Tables: `openings`, `players`, `platforms` and 
+## 4) Dimension Tables: `opening`, `player`, `platform`, `time_class`
 
 
 # Files
