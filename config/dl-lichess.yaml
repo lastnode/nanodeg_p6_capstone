@@ -1,0 +1,126 @@
+aws_access_key_id: 
+aws_secret_key_id: 
+
+output_data_path_local: output_data/
+output_data_path_s3: 
+
+lichess_players:
+  - drnykterstein
+# - Konevlad 
+# - neslraCsungaM77 
+# - Vladimirovich9000 
+# - sp1cycaterpillar 
+# - Federicov93 
+# - may6enexttime 
+# - Kelevra317 
+# - nihalsarin2004 
+# - Drvitman 
+# - DrNykterstein 
+# - C9C9C9C9C9 
+# - muisback 
+# - Inventing_Invention 
+# - RebeccaHarris 
+# - drop_stone 
+# - Alexander_Zubov 
+# - IWANNABEADOORED 
+# - Kelevra317 
+# - dolar9 
+# - cutemouse83
+# - muisback
+# - Feokl199
+# - may6enexttime
+# - defenceboy1
+# - Vladimirovich9000
+# - IVK88
+# - cutemouse83
+# - Federicov93
+# - Multibrendovy
+# - NIndja64
+# - VincentKeymer2004
+# - avantage_ru
+# - SalgadoChess
+# - Lunaticxxx
+# - Kelevra31
+# - MinhJTran
+# - Riquelme9
+# - Eyesless1
+# - GABUZYAN_CHESSMOO
+# - Ernst_Gruenfeld
+# - vroel
+# - Sr_Cactu
+# - Bakayoyo
+# - venajalainen
+# - zvonokches
+# - VladimirBelous
+# - Gogithewise
+# - recaptu
+# - kaka6
+# - Chesstoday
+# - gmmoranda
+# - K-Georgiev
+# - Tigran-Harutyunyan
+# - Arm-Akib
+# - Evgeny_Levin
+# - Zhigalko_Sergei
+# - Brrrrrrr
+# - Bananafishe
+# - Eduiturri
+# - ARM-777777
+# - arturchi
+# - E-Shaposhniko
+# - MikeGScarn
+# - L04d1ng
+# - ciudadajedrezescolar
+# - DrawDenied_Twitch
+# - daro94
+# - RealDavidNavara
+# - S2Pac
+# - Kuzubov
+# - MichelangeI
+# - charmgame
+# - Harikrishnapentala
+# - UFCfa
+# - kontraJako
+# - BIZO
+# - ABachmann
+# - justantan
+# - NeverEnoug
+# - Davja
+# - AvitalTotaha
+# - Moro182
+# - nrvisakh
+# - enmQ
+# - Atalik
+# - GrigorGrigorov
+# - crackcuban
+# - VerdeNotte
+# - Odessacoach
+# - Buhman
+# - Konstantin_Tarlev
+# - Dragso
+# - betheking
+# - Alexsur8
+# - PinePiper
+# - Arseniii_Nesterov
+# - kutiktau
+# - Rikikits
+# - Zaven_ChessMoo
+# - Sailor1951
+# - gg-gm-gmg
+# - rasulovvugar
+# - BartoszSock
+# - Pavel-Vorontsov
+# - ElAsesinoFavorito
+# - sumsar4
+# - Kastorcit
+# - Triumph-of-Diversit
+# - medela2019
+# - TexasMustan
+# - Chesser22
+# - Meskenas
+# - MELND-777
+# - BabaRamde
+
+# How many games to download. Set `~` (null) to download all games.
+
+max_games_per_player: ~
