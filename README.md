@@ -2,10 +2,12 @@
 
 A part of the [Udacity Data Engineering Nanodegree](https://www.udacity.com/course/data-engineer-nanodegree--nd027), this [ETL](https://en.wikipedia.org/wiki/Extract,_transform,_load) project was developed as the DEND's Capstone Project. 
 
-The goal of the project was to combine chess game data from from two popular chess website APIs:
+The aim of the project was to combine chess game data from from two popular chess website APIs:
 
 1) [The Lichess.org API](https://lichess.org/api)
 2) [The Chess.com API](https://www.chess.com/news/view/published-data-api) — via the `chessdotcom` [Python module](https://pypi.org/project/chess.com/)
+
+— and thereby allow the creation of a custom bank of chess games, from both of the Internet's two most popular chess sites.
 
 This project first pulls these data via the APIs that both sites offerandthenthen performs ETL operations on these data using [Apache Spark](https://spark.apache.org/) ([PySpark](https://spark.apache.org/docs/latest/api/python/index.html)), moving these 1M+ rows from a collection of raw API responses to finally rendering them as aggregate fact tables that display useful information regarding chess openings and players found in the dataset.
 
@@ -321,8 +323,15 @@ We chose to use the [asyncio](https://docs.python.org/3/library/asyncio.html) an
 
 Throughout the rest of the project, we use [Apache Spark](https://spark.apache.org/) for its superior distributed data processing capabilities and pair it with the [Apache Parquet](https://parquet.apache.org/) file format, which is a columnar storage format that is [both faster than other file formats like CSV, while also taking up less space on disk](https://www.upsolver.com/blog/apache-parquet-why-use).
 
-This Spark + Parquet pairing also means that scaling the project up to handle 100x the data will be much easier as  well.
+This Spark + Parquet pairing also means that scaling the project up to handle 100x the data will be much easier as  well. More on that below.
 
+## Updating the Data
+
+This dataset is highly customisable, as the goal here was to allow the creation of a custom bank of chess games, from both of the Internet's two most popular chess sites. How often the data should be updated will depend on the use-case. For example:
+
+a) If you were building a database of games for a particular player like Magnus Carlsen, you could fetch games from both their Lichess (`drnykterstein`) and Chess.com (`magnuscarlsen`) usernames and then set up automation using a tool like [Apache Airflow](https://airflow.apache.org/) to pull in their most recent games each day.
+
+b) On the other hand, if you were looking to build a dataset of games from the year `2020`, you could specify the players you want to pull games from using the config files in the `config/` directory and then build and complete that dataset.
 
 # Scaling
 Here is how I would approach scaling:
