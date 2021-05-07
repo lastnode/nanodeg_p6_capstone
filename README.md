@@ -138,24 +138,38 @@ root
 
  ```
 
-## 3) Games Fact Table
+## 3) `games` Fact Table
 
 ### Final Transformations
 
 There is a difference in the number of columns between the two Chess.com / Lichess staging tables, for which reason we perform some final transformations in the `etl-fact-and-data-quality.py` script.
 
 1) Removing the extra `rated` column in the the Chess.com staging table before we union the tables.
-2) In the Lichess staging table, the `white_rating` and `black_rating` columns are of the `double` type, andwe. thus need to convert them to `int`s before we union the tables.
-3) Creating an `id` column by hashing the `game_end_time`, `white_username` and `black_username` columns.
+2) Creating an `id` column by hashing the `game_end_time`, `white_username` and `black_username` columns.
+3) We create the the following `*_id` columns using Spark SQL's [SHA1 hash function](https://spark.apache.org/docs/2.3.0/api/sql/index.html#sha1):
+
+a) `game_id` hashed from `game_end_time` + `white_username` + `black_username`
+b) `white_id` hashed from `white_username`
+c) `black_id` hashed from `black_username`
+d) `opening_id` hashed from `opening`
+e) `time_class_id` hashed from `time_class`
+f) `platform_id` hased from `platform`
+
+After we do this, select only the following columns when we render final  `games` fact table:
+
+
 
 ### Data Quality Checks
 
 After joining the Chess.com and Lichess fact tables, we perform these data quality checks on the final fact table:
 
-1) We use `.dropDuplicates()` on the `id` column to filter out any duplicate rows.
+1) Use `.dropDuplicates()` on the `game_id` column to filter out any duplicate rows.
+2) Use `cast()` to set the correct data types on `int` and `timestamp` columns such as `year`, `game_end_time`, `game_end_date`, `white_rating` and `black_rating` that may have been incorrect cast in the staging tables.
 
 
 ## 4) Dimension Tables: `opening`, `player`, `platform`, `time_class`
+
+1) We 
 
 
 # Files
@@ -164,6 +178,54 @@ After joining the Chess.com and Lichess fact tables, we perform these data quali
 - etl-api-lichess.py -- script that fetches data from the Lichess API
 - etl-api-chessdotcom.py -- script that fetches data from the Chess.com API
 - etl-staging.py -- script that takes the raw API data and outputs a staging table for each chess site
-- etl-fact-and-data-quality -- Jupyter notebook that unions the two staging tables and performs data quality checks before outputting a fact table
-- analytics.ipynb -- Jupyter notebook that runs the analytics queries and outputs the aggregate fact tables
+- etl-fact-dim-tables.ipynb -- Jupyter notebook that unions the two staging tables and performs data quality checks before outputting the fact and dim tables
+- analytics.ipynb -- Jupyter notebook that loads the fact and dim tables and runs analytics
 ```
+
+# Setup 
+
+## Configuring AWS Access Key
+
+You will need to configure `config/dl-lichess.yaml` and `config/dl-chesscom.yaml` with your [AWS access key](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html) that allows you to connect to your S3 buckets.
+
+
+## `etl-api-*.py`
+
+These two scripts do not require Spark to run. Instead, they fetch data from the API and write it out to `*.parquet` files using pandas. Here are the Python modules required by the two scripts:
+
+`etl-api-chessdotcom.py` -- `chessdotcom`, `pyyaml`, `argparse`, `os`, `requests`, `json`, `s3fs`
+
+`etl-api-lichess.py` -- `asyncio`, `flatten_json`, `pyyaml`, `argparse`, `os`, `requests`, `json`, `pathlib`, `s3fs`
+
+Note: The `chessdotcom` script uses [the `chessdotcom` Python module](https://pypi.org/project/chess.com/), which uses [aiohttp](https://pypi.org/project/aiohttp/) for asynchronous web requests. The`lichess` script uses [`asyncio`](https://docs.python.org/3/library/asyncio.html) to implement async fetchign manually.
+
+## `etl-staging.py`
+
+If you plan to run the `etl-staging.py` script on a Spark cluster such as [Amazon EMR](https://aws.amazon.com/emr/?whats-new-cards.sort-by=item.additionalFields.postDateTime&whats-new-cards.sort-order=desc), you will need to configure [a bootstrap script](https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-plan-bootstrap.html) that will install the required Python modules on your Spark worker nodes as well. Here is a sample bash script that you can use for this purpose:
+
+```
+#!/bin/bash
+
+sudo python3 -m pip install argparse pyyaml pgn_parser 
+```
+
+
+# Scaling
+Here is how I would approach scaling:
+
+> The data was increased by 100x.
+
+The main ETL processes should still work fine:
+a) Both `etl-api-*.py` make use of async http fetching and will be able to pull in more data if allocated more system resources. However, there is likely more optimization that can be done here to allow more concurrent connections and speed things up.
+
+b) `etl-staging.py` on the other hand will easily scale up to match the resources available by the Spark cluster. With Spark doing the heavy lifting here in terms of resource allocation and management, there likely won't be many bottlenecks here in terms of the staging data that can be processed.
+
+c) Finally, our two notebookes: `etl-fact-dim-tables.ipynb`  and `analytics.ipynb` use Spark as well, and as above, should have no trouble handling even 100x data, provided that the cluster was given enough resources to operate.
+
+> The pipelines would be run on a daily basis by 7 am every day.
+
+This kind of automation could be achieved by setting up an Airflow DAG that runs these ETL scripts at 7am each day.
+
+> The database needed to be accessed by 100+ people.
+
+Given that we save `*.parquet` files to s3 each day, at any stage of the process these files can be moved into [Amazon Redshift](https://aws.amazon.com/redshift/) via its convenient [COPY functionality](https://aws.amazon.com/about-aws/whats-new/2018/06/amazon-redshift-can-now-copy-from-parquet-and-orc-file-formats/). Since `*.parquet` files are widely supported in the [Apache Hadoop ecosystem](https://hadoop.apache.org/) they can also be loaded directly into many other database systems.

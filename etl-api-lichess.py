@@ -4,7 +4,6 @@ from datetime import datetime
 import os
 from flatten_json import flatten
 import asyncio
-import configparser
 import yaml
 import argparse
 import pandas as pd
