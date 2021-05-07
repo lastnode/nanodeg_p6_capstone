@@ -32,6 +32,8 @@ The final data model includes one fact table:
 3. `platform`
 4. `time_class`
 
+This allows a data consumer accessing this final data model to join these tables and run complex queries. For a few examples of such queries, see the `analytics.ipynb` notebook.
+
 The ERD for final model looks like this:
 
 ![Image - Project ERD Model](images/erd.png)
@@ -251,7 +253,8 @@ Contains a hashed `platform_id` and platform name. Currently only contains `lich
 # Files
 ```
 - config/dl-lichess.yaml -- Lichess config file
-- config/dl-chessdotcom.yaml - Chess.com config file
+- config/dl-chessdotcom.yaml -- Chess.com config file
+- sql_queries.py -- The SQL queries module that is used by `etl-staging.py`
 - images/erd.png - ERD image which is included in the README
 - README.md -- this file
 - etl-api-lichess.py -- script that fetches data from the Lichess API
