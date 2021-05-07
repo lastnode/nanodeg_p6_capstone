@@ -219,9 +219,33 @@ After joining the Chess.com and Lichess fact tables, we perform these data quali
 2) Use `cast()` to set the correct data types on `int` and `timestamp` columns such as `year`, `game_end_time`, `game_end_date`, `white_rating` and `black_rating` that may have been incorrect cast in the staging tables.
 
 
-## 4) Dimension Tables: `opening`, `player`, `platform`, `time_class`
+## 4) Dimension Tables
 
-We then render the four 
+We then render these four dimension tables:
+
+### `player`
+
+![Image - Dimension Table - player](images/dim_player.png)
+
+Currently contains a hashed `player_id` and player name, but in the future more columns could be added that contain biographical info and lifetime stats.
+
+### `opening`
+
+![Image - Dimension Table - opening](images/dim_opening.png)
+
+Currently contains a hashed `opening_id` and opening name, but in the future more columns could be added that contain information such as [Chess ECO codes](https://www.365chess.com/eco.php).
+
+### `time_class`
+
+![Image - Dimension Table - time_class](images/dim_time_class.png)
+
+Contains a hashed `time_class_id` and time class name.
+
+### `platform`
+
+![Image - Dimension Table - platform](images/platform.png)
+
+Contains a hashed `platform_id` and platform name. Currently only contains `lichess` and `chessdotcom`  but more platforms could be added in the future.
 
 
 # Files
@@ -331,7 +355,7 @@ This dataset is highly customisable, as the goal here was to allow the creation 
 
 a) If you were building a database of games for a particular player like Magnus Carlsen, you could fetch games from both their Lichess (`drnykterstein`) and Chess.com (`magnuscarlsen`) usernames and then set up automation using a tool like [Apache Airflow](https://airflow.apache.org/) to pull in their most recent games each day.
 
-b) On the other hand, if you were looking to build a dataset of games from the year `2020`, you could specify the players you want to pull games from using the config files in the `config/` directory and then build and complete that dataset.
+b) On the other hand, if you were looking to build a dataset of games from the year `2020`, you could specify the players you want to pull games from using the config files in the `config/` directory and then build and complete that dataset once and for all.
 
 # Scaling
 Here is how I would approach scaling:
