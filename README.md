@@ -255,7 +255,7 @@ Contains a hashed `platform_id` and platform name. Currently only contains `lich
 - config/dl-lichess.yaml -- Lichess config file
 - config/dl-chessdotcom.yaml -- Chess.com config file
 - sql_queries.py -- The SQL queries module that is used by `etl-staging.py`
-- images/erd.png - ERD image which is included in the README
+- images/* - Images included in the README
 - README.md -- this file
 - etl-api-lichess.py -- script that fetches data from the Lichess API
 - etl-api-chessdotcom.py -- script that fetches data from the Chess.com API
