@@ -13,11 +13,11 @@ During this process, data is saved at each stage in [Apache Parquet](https://par
 
 This project includes:
 * At least 2 data sources ✅ (Chess.com and Lichess data)
-* More than 1 million lines of data. ✅ (The combined Chess.com and Lichess staging tables have ` ` rows)
+* More than 1 million lines of data. ✅ (The combined Chess.com and Lichess staging tables have `1,047,618` rows.)
 * At least two data sources/formats (csv, api, json) ✅ (API Responses are in JSON, but the Chess.com response contains a [PGN](https://en.wikipedia.org/wiki/Portable_Game_Notation) blob that we need to parse separately.)
 
 
-# Data Model
+# Data Model / Dictionary
 
 The final data model includes one fact table:
 
@@ -182,7 +182,26 @@ There is a difference in the number of columns between the two Chess.com / Liche
 4) We use PySpark's [dropDuplicates](https://spark.apache.org/docs/latest/api/python/reference/api/pyspark.sql.DataFrame.dropDuplicates.html) function to remove rows that have the same (SHA1 hashed) `game_id` column.
 
 
-After we do this, select only the following columns when we render final  `games` fact table:
+After we do this, select only the following columns when we ouput final `games` fact table:
+
+```
+root
+ |-- game_id: string (nullable = true)
+ |-- year: integer (nullable = true)
+ |-- game_end_time: timestamp (nullable = true)
+ |-- game_end_date: timestamp (nullable = true)
+ |-- time_class_id: string (nullable = true)
+ |-- white_id: string (nullable = true)
+ |-- white_rating: integer (nullable = true)
+ |-- black_id: string (nullable = true)
+ |-- black_rating: integer (nullable = true)
+ |-- winner: string (nullable = true)
+ |-- termination: string (nullable = true)
+ |-- opening_id: string (nullable = true)
+ |-- moves: string (nullable = true)
+ |-- platform_id: string (nullable = true)
+
+```
 
 
 
@@ -196,7 +215,7 @@ After joining the Chess.com and Lichess fact tables, we perform these data quali
 
 ## 4) Dimension Tables: `opening`, `player`, `platform`, `time_class`
 
-1) We 
+We then render the four 
 
 
 # Files
@@ -251,8 +270,10 @@ c) Finally, our two notebookes: `etl-fact-dim-tables.ipynb`  and `analytics.ipyn
 
 > The pipelines would be run on a daily basis by 7 am every day.
 
-This kind of automation could be achieved by setting up an Airflow DAG that runs these ETL scripts at 7am each day.
+This kind of automation could be achieved by setting up an [Apache Airflow DAG](https://airflow.apache.org/docs/apache-airflow/stable/tutorial.html) that runs these ETL scripts at 7am each day.
 
 > The database needed to be accessed by 100+ people.
 
 Given that we save `*.parquet` files to s3 each day, at any stage of the process these files can be moved into [Amazon Redshift](https://aws.amazon.com/redshift/) via its convenient [COPY functionality](https://aws.amazon.com/about-aws/whats-new/2018/06/amazon-redshift-can-now-copy-from-parquet-and-orc-file-formats/). Since `*.parquet` files are widely supported in the [Apache Hadoop ecosystem](https://hadoop.apache.org/) they can also be loaded directly into many other database systems.
+
+This loading could be automated using Airflow DAGs as well and once these data are in a RDMBS, they could be simultaneously accessible by hundreds and even thousands of users.
