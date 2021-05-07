@@ -121,7 +121,7 @@ def main():
 
     #Load settings from yaml file
 
-    with open(r'dl-chesscom.yaml') as file:
+    with open(r'config/dl-chessdotcom.yaml') as file:
         config = yaml.load(file,Loader=yaml.SafeLoader)
 
     # Sets AWS access environment variables, even though

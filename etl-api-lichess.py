@@ -141,7 +141,7 @@ async def main():
 
     #Load settings from yaml file
 
-    with open(r'dl-lichess.yaml') as file:
+    with open(r'config/dl-lichess.yaml') as file:
         config = yaml.load(file)
 
      # Sets AWS access environment variables.
