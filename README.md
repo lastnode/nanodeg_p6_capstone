@@ -277,10 +277,6 @@ players:
 
 `chessdotcom_players` is where you need to list the players whose chess game data you would like to collect via the `etl-api-chessdotcom.py` script.
 
-
-
-
-
 ## `etl-api-*.py`
 
 These two scripts do not require Spark to run. Instead, they fetch data from the API and write it out to `*.parquet` files using pandas. Here are the Python modules required by the two scripts:
@@ -300,6 +296,32 @@ If you plan to run the `etl-staging.py` script on a Spark cluster such as [Amazo
 
 sudo python3 -m pip install argparse pyyaml pgn_parser 
 ```
+
+Further, when you invoke`etl-staging.py` you will need to specify which plaform to pull the raw data from. For Lichess, use:
+
+`python etl-staging.py --platform lichess`
+
+and for Chess.com use:
+
+`python etl-staging.py --platform chessdotcom`
+
+## Saving data locally vs on s3
+
+Though both ETL API scripts (`etl-api-*.py`) and the ETL staging script (`etl-staging.py`) default to saving data on Amazon s3, they can also save data locally. To make this happen, pass in the `--local` flag to the script when you invoke it. For example:
+
+`etl-api-chessdotcom.py --local`
+
+# Tools and Technologies
+
+## ETL API Scripts(`etl-api-*.py`) - `asyncio` and `aiohttp`
+
+We chose to use the [asyncio](https://docs.python.org/3/library/asyncio.html) and [aiohttp](https://docs.aiohttp.org/en/stable/) functionality available in Python 3.3+ for these API scripts, as that asynchronicity is key when fetching data from APIs. We implemented `asyncio` manually for the Lichess script, but for the Chess.com script, `aiohttp` was already implemented in [the chessdotcom Python module](https://pypi.org/project/chess.com/) that we used. 
+
+## ETL Staging Script and ETL Fact+Dim / Analytics Notebooks
+
+Throughout the rest of the project, we use [Apache Spark](https://spark.apache.org/) for its superior distributed data processing capabilities and pair it with the [Apache Parquet](https://parquet.apache.org/) file format, which is a columnar storage format that is [both faster than other file formats like CSV, while also taking up less space on disk](https://www.upsolver.com/blog/apache-parquet-why-use).
+
+This Spark + Parquet pairing also means that scaling the project up to handle 100x the data will be much easier as  well.
 
 
 # Scaling
