@@ -11,6 +11,12 @@ This project first pulls these data via the APIs that both sites offerandthenthe
 
 During this process, data is saved at each stage in [Apache Parquet](https://parquet.apache.org/) format, as it has [a number of advantages over other file formats such as CSV](https://blog.openbridge.com/how-to-be-a-hero-with-powerful-parquet-google-and-amazon-f2ae0f35ee04), including being a columnar storage format. Throughout this process, data can be saved both locally, or to [Amazon S3](https://aws.amazon.com/s3/).
 
+This project includes:
+* At least 2 data sources ✅ (Chess.com and Lichess data)
+* More than 1 million lines of data. ✅ (The combined Chess.com and Lichess staging tables have ` ` rows)
+* At least two data sources/formats (csv, api, json) ✅ (API Responses are in JSON, but the Chess.com response contains a [PGN](https://en.wikipedia.org/wiki/Portable_Game_Notation) blob that we need to parse separately.)
+
+
 # Data Model
 
 The final data model includes one fact table:
@@ -114,7 +120,9 @@ These JSON blobs are flattened and then stored as `*.parquet` files in the `raw/
 
 ## 2) Staging Tables
 
-From there, we use Spark SQL transformations in the the `etl-staging.py`  script to create a staging table each for Chess.com and Lichess data.
+From there, we use Spark SQL transformations in the the `etl-staging.py`  script to create a staging table each for Chess.com and Lichess data. 
+
+Here, the Chess.com staging table has one extra column `rated` and several columns also have incorrect types. These issues are fixed when generating the fact and dimension tables in the next step of the ETL process.
 
 ### Chessdotcom Staging
 
@@ -162,14 +170,17 @@ There is a difference in the number of columns between the two Chess.com / Liche
 
 1) Removing the extra `rated` column in the the Chess.com staging table before we union the tables.
 2) Creating an `id` column by hashing the `game_end_time`, `white_username` and `black_username` columns.
-3) We create the the following `*_id` columns using Spark SQL's [SHA1 hash function](https://spark.apache.org/docs/2.3.0/api/sql/index.html#sha1):
+3) We also create the the following `*_id` columns using Spark SQL's [SHA1 hash function](https://spark.apache.org/docs/2.3.0/api/sql/index.html#sha1):
 
-a) `game_id` hashed from `game_end_time` + `white_username` + `black_username`
-b) `white_id` hashed from `white_username`
-c) `black_id` hashed from `black_username`
-d) `opening_id` hashed from `opening`
-e) `time_class_id` hashed from `time_class`
-f) `platform_id` hased from `platform`
+* `game_id` hashed from `game_end_time` + `white_username` + `black_username`
+* `white_id` hashed from `white_username`
+* `black_id` hashed from `black_username`
+* `opening_id` hashed from `opening`
+* `time_class_id` hashed from `time_class`
+* `platform_id` hased from `platform`
+
+4) We use PySpark's [dropDuplicates](https://spark.apache.org/docs/latest/api/python/reference/api/pyspark.sql.DataFrame.dropDuplicates.html) function to remove rows that have the same (SHA1 hashed) `game_id` column.
+
 
 After we do this, select only the following columns when we render final  `games` fact table:
 
