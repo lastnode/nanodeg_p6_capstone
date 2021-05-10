@@ -217,9 +217,9 @@ When writing the `games` table to `*.parquet` files, we partition them by both `
 
 After joining the Chess.com and Lichess fact tables, we perform these data quality checks on the final fact table:
 
-1) Use `.dropDuplicates()` on the `game_id` column to filter out any duplicate rows.
-2) Use `cast()` to set the correct data types on `int` and `timestamp` columns such as `year`, `game_end_time`, `game_end_date`, `white_rating` and `black_rating` that may have been incorrect cast in the staging tables.
+a) Check for nulls in the `game_id` column
 
+b) Check that all values in the `games.game_id` column are distinct (no dupes)
 
 ## 4) Dimension Tables
 
