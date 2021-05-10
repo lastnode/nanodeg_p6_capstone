@@ -189,6 +189,8 @@ There is a difference in the number of columns between the two Chess.com / Liche
 
 4) We use PySpark's [dropDuplicates](https://spark.apache.org/docs/latest/api/python/reference/api/pyspark.sql.DataFrame.dropDuplicates.html) function to remove rows that have the same (SHA1 hashed) `game_id` column.
 
+5) Use `cast()` to set the correct data types on `int` and `timestamp` columns such as `year`, `game_end_time`, `game_end_date`, `white_rating` and `black_rating` that may have been incorrect cast in the staging tables.
+
 
 After we do this, select only the following columns when we ouput final `games` fact table:
 
