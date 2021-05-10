@@ -382,4 +382,4 @@ This kind of automation could be achieved by setting up an [Apache Airflow DAG](
 
 Given that we save `*.parquet` files to s3 each day, at any stage of the process these files can be moved into [Amazon Redshift](https://aws.amazon.com/redshift/) via its convenient [COPY functionality](https://aws.amazon.com/about-aws/whats-new/2018/06/amazon-redshift-can-now-copy-from-parquet-and-orc-file-formats/). Since `*.parquet` files are widely supported in the [Apache Hadoop ecosystem](https://hadoop.apache.org/) they can also be loaded directly into many other database systems.
 
-This loading could be automated using Airflow DAGs as well and once these data are in a RDMBS, they could be simultaneously accessible by hundreds and even thousands of users.
+This loading could be automated using Airflow DAGs as well and once these data are in a RDBMS, they could be simultaneously accessible by hundreds and even thousands of users.
